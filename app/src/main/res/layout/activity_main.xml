@@ -4,6 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:id="@+id/main_rl"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context=".MainActivity">
 
     <com.baidu.mapapi.map.MapView
@@ -12,14 +16,51 @@
         android:layout_height="match_parent"
         android:clickable="true" />
 
-
-    <Button
-        android:id="@+id/find_me_btn"
-        android:text="定位"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        >
+        <android.support.v7.widget.CardView
+            android:id="@+id/ll_search"
+            android:layout_width="80dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            app:cardCornerRadius="15sp"
+            android:gravity="center">
+
+            <EditText
+                android:id="@+id/edittxt_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/search"
+                android:drawablePadding="5dp"
+                android:gravity="center_vertical"
+                android:hint="搜索"
+                android:background="@null"
+                android:layout_gravity="center"
+                android:textColor="#8A8A8A"/>
+        </android.support.v7.widget.CardView>
+    </RelativeLayout>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/find_me_cardview"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
-        android:layout_margin="10dp"/>
+        android:background="@color/white"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="100dp">
+
+        <Button
+            android:id="@+id/find_me_btn"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:background="@drawable/icon_find_me" />
+    </android.support.v7.widget.CardView>
 
 </RelativeLayout>
