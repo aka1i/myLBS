@@ -2,6 +2,7 @@ package com.example.map;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -40,11 +41,29 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.route.BikingRouteResult;
+import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
+import com.baidu.mapapi.search.route.DrivingRouteResult;
+import com.baidu.mapapi.search.route.IndoorRouteResult;
+import com.baidu.mapapi.search.route.MassTransitRouteResult;
+import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
+import com.baidu.mapapi.search.route.PlanNode;
+import com.baidu.mapapi.search.route.RoutePlanSearch;
+import com.baidu.mapapi.search.route.TransitRouteResult;
+import com.baidu.mapapi.search.route.WalkingRoutePlanOption;
+import com.baidu.mapapi.search.route.WalkingRouteResult;
+import com.baidu.mapapi.walknavi.WalkNavigateHelper;
+import com.baidu.mapapi.walknavi.adapter.IWEngineInitListener;
+import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
+import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
+import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "MainActivity";
     private MapView mMapView = null;
     private BaiduMap mBaiduMap;
+    private RoutePlanSearch routePlanSearch = null;
     private Button mFindMeButton;
     private EditText mSearch;
     private CardView mSearchLayout;
@@ -92,6 +111,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mBaiduMap.setMyLocationEnabled(false);
         mMapView.onDestroy();
         mMapView = null;
+        routePlanSearch.destroy();
     }
 
     public class MyLocationListener extends BDAbstractLocationListener {
@@ -133,6 +153,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mSearchLayout = findViewById(R.id.ll_search);
         mMainRelativeLayout = findViewById(R.id.main_rl);
         mFindMeCardView = findViewById(R.id.find_me_cardview);
+
         //获取地图控件引用
         mMapView =  findViewById(R.id.bmapView);
         mBaiduMap = mMapView.getMap();
@@ -182,6 +203,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 return false;
             }
         });
+
+
+        //创建驾车线路规划检索实例；
+        routePlanSearch = RoutePlanSearch.newInstance();
+
+
     }
 
     @Override
@@ -206,11 +233,91 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void findMe(){
+        //创建驾车线路规划检索监听者；
+        OnGetRoutePlanResultListener listener = new OnGetRoutePlanResultListener() {
+
+            public void onGetDrivingRouteResult(DrivingRouteResult result) {
+                //获取驾车线路规划结果
+            }
+
+            @Override
+            public int hashCode() {
+                return super.hashCode();
+            }
+
+            @Override
+            public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
+                Toast.makeText(MainActivity.this,"开始",Toast.LENGTH_SHORT).show();
+                if (walkingRouteResult == null || walkingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
+                    Log.d(TAG, "onGetWalkingRouteResult: " + walkingRouteResult.error);
+                    Toast.makeText(MainActivity.this,"抱歉，未找到结果",Toast.LENGTH_SHORT).show();
+                }
+                if (walkingRouteResult.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+                    Toast.makeText(MainActivity.this,"起终点或途经点地址有岐义",Toast.LENGTH_SHORT).show();
+                    // 起终点或途经点地址有岐义，通过以下接口获取建议查询信息
+                    Log.d(TAG, "onGetWalkingRouteResult: " + walkingRouteResult);
+                    return;
+                }
+                if (walkingRouteResult.error == SearchResult.ERRORNO.NO_ERROR) {
+                    Toast.makeText(MainActivity.this,"导航成功",Toast.LENGTH_SHORT).show();
+//                                    nodeIndex = -1;
+//                    mBtnPre.setVisibility(View.VISIBLE);
+//                    mBtnNext.setVisibility(View.VISIBLE);
+//                    route = result.getRouteLines().get(0);
+//                    WalkingRouteOverlay overlay = new MyWalkingRouteOverlay(mBaidumap);
+//                    mBaidumap.setOnMarkerClickListener(overlay);
+//                    routeOverlay = overlay;
+//                    overlay.setData(result.getRouteLines().get(0));
+//                    overlay.addToMap();
+//                    overlay.zoomToSpan();
+
+
+                }
+
+            }
+
+            @Override
+            public void onGetTransitRouteResult(TransitRouteResult transitRouteResult) {
+
+            }
+
+            @Override
+            public void onGetMassTransitRouteResult(MassTransitRouteResult massTransitRouteResult) {
+
+            }
+
+            @Override
+            public void onGetIndoorRouteResult(IndoorRouteResult indoorRouteResult) {
+
+            }
+
+            @Override
+            public void onGetBikingRouteResult(BikingRouteResult bikingRouteResult) {
+
+            }
+        };
+        //设置驾车线路规划检索监听者，该方法要先于检索方法drivingSearch(DrivingRoutePlanOption)前调用，否则会在某些场景出现拿不到回调结果的情况
+
+
+        //准备检索起、终点信息；
+        PlanNode stNode = PlanNode.withCityNameAndPlaceName("福州","福州大学学生公寓32");
+        PlanNode enNode = PlanNode.withCityNameAndPlaceName("福州", "37栋西2教学楼");
+        //发起驾车线路规划检索；
+        routePlanSearch.walkingSearch((new WalkingRoutePlanOption())
+                .from(stNode)
+             //   .to(PlanNode.withLocation(new LatLng(119.201366,26.064479))));
+                .to(enNode));
+
+        routePlanSearch.setOnGetRoutePlanResultListener(listener);
+
+
+
         LatLng ll = new LatLng(mCurrentX,mCurrentY);
         MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(ll);
         mBaiduMap.animateMapStatus(update);
         update = MapStatusUpdateFactory.zoomTo(19f);
         mBaiduMap.animateMapStatus(update);
+
     }
 
     public void requestPower(){
