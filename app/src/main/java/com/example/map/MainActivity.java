@@ -41,6 +41,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.BikingRouteResult;
 import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
@@ -58,6 +59,8 @@ import com.baidu.mapapi.walknavi.adapter.IWEngineInitListener;
 import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
 import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
 import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
+import com.example.map.overlayutil.OverlayManager;
+import com.example.map.overlayutil.WalkingRouteOverlay;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "MainActivity";
@@ -71,6 +74,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private LocationClient mLocationClient;
     private RelativeLayout mMainRelativeLayout;
     private TransitionSet mSet;
+    private RouteLine route = null;
+    OverlayManager routeOverlay = null;
+    MyLocationData locData;
     private double mCurrentX;
     private double mCurrentY;
     private boolean isFirstLoad = true;
@@ -123,7 +129,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
             mCurrentX = location.getLatitude();
             mCurrentY = location.getLongitude();
-            MyLocationData locData = new MyLocationData.Builder()
+            locData = new MyLocationData.Builder()
                     .accuracy(location.getRadius())
                     // 此处设置开发者获取到的方向信息，顺时针0-360
                     .direction(location.getDirection()).latitude(location.getLatitude())
@@ -263,15 +269,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //                                    nodeIndex = -1;
 //                    mBtnPre.setVisibility(View.VISIBLE);
 //                    mBtnNext.setVisibility(View.VISIBLE);
-//                    route = result.getRouteLines().get(0);
-//                    WalkingRouteOverlay overlay = new MyWalkingRouteOverlay(mBaidumap);
-//                    mBaidumap.setOnMarkerClickListener(overlay);
-//                    routeOverlay = overlay;
-//                    overlay.setData(result.getRouteLines().get(0));
-//                    overlay.addToMap();
-//                    overlay.zoomToSpan();
-
-
+                    route = walkingRouteResult.getRouteLines().get(0);
+                    WalkingRouteOverlay overlay = new WalkingRouteOverlay(mBaiduMap);
+                    mBaiduMap.setOnMarkerClickListener(overlay);
+                    routeOverlay = overlay;
+                    overlay.setData(walkingRouteResult.getRouteLines().get(0));
+                    overlay.addToMap();
+                    overlay.zoomToSpan();
                 }
 
             }
@@ -300,13 +304,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
         //准备检索起、终点信息；
-        PlanNode stNode = PlanNode.withCityNameAndPlaceName("福州","福州大学学生公寓32");
+       PlanNode stNode = PlanNode.withCityNameAndPlaceName("福州","福州大学学生公寓32");
         PlanNode enNode = PlanNode.withCityNameAndPlaceName("福州", "37栋西2教学楼");
         //发起驾车线路规划检索；
         routePlanSearch.walkingSearch((new WalkingRoutePlanOption())
-                .from(stNode)
+                .from(PlanNode.withLocation(new LatLng(locData.latitude,locData.longitude)))
+              //  .from(stNode)
              //   .to(PlanNode.withLocation(new LatLng(119.201366,26.064479))));
                 .to(enNode));
+        Log.d(TAG, "findMe: " + locData.latitude + "    " + locData.longitude);
 
         routePlanSearch.setOnGetRoutePlanResultListener(listener);
 
