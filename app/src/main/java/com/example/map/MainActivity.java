@@ -1,33 +1,38 @@
 package com.example.map;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.os.Build;
-import android.service.notification.StatusBarNotification;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
 import android.util.Log;
-import android.view.Display;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.location.BDAbstractLocationListener;
@@ -35,16 +40,22 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
-import com.baidu.mapapi.map.BaiduMapOptions;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.CircleOptions;
+import com.baidu.mapapi.map.InfoWindow;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MarkerOptions;
+import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.BikingRouteResult;
-import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
 import com.baidu.mapapi.search.route.IndoorRouteResult;
 import com.baidu.mapapi.search.route.MassTransitRouteResult;
@@ -54,19 +65,31 @@ import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRoutePlanOption;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
-import com.baidu.mapapi.walknavi.WalkNavigateHelper;
-import com.baidu.mapapi.walknavi.adapter.IWEngineInitListener;
-import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
-import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
-import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
+import com.baidu.mapapi.utils.DistanceUtil;
+import com.example.map.adapter.DaohangAdapter;
+import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
+import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
+import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
+import com.nightonke.boommenu.BoomMenuButton;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "MainActivity";
+    private long exitTime=0;
+    MyLocationListener myLocationListener;
+    private PopupWindow pop;
     private MapView mMapView = null;
     private BaiduMap mBaiduMap;
+    private InfoWindow mInfoWindow;
     private RoutePlanSearch routePlanSearch = null;
+    private float mZoomScale = 19f;
+    private LatLng mDestinationPoint;
+    public static View mCurrentFcous;
     private Button mFindMeButton;
     private EditText mSearch;
     private CardView mSearchLayout;
@@ -77,6 +100,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private RouteLine route = null;
     OverlayManager routeOverlay = null;
     MyLocationData locData;
+    private BoomMenuButton bmb;
     private double mCurrentX;
     private double mCurrentY;
     private boolean isFirstLoad = true;
@@ -113,6 +137,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     protected void onDestroy() {
         super.onDestroy();
         //在activity执行onDestroy时执行mMapView.onDestroy()，实现地图生命周期管理
+        mLocationClient.unRegisterLocationListener(myLocationListener);
         mLocationClient.stop();
         mBaiduMap.setMyLocationEnabled(false);
         mMapView.onDestroy();
@@ -135,6 +160,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     .direction(location.getDirection()).latitude(location.getLatitude())
                     .longitude(location.getLongitude()).build();
             mBaiduMap.setMyLocationData(locData);
+            mBaiduMap.setMyLocationConfiguration(new MyLocationConfiguration(
+                    MyLocationConfiguration.LocationMode.NORMAL, true, null));  //显示方向
             if (location.getLocType() == BDLocation.TypeGpsLocation || location.getLocType() == BDLocation.TypeNetWorkLocation)
                 navigateTo(location);
             new Thread(new Runnable() {
@@ -142,6 +169,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 public void run() {
                     Log.d(TAG, "纬度: " + location.getLatitude());
                     Log.d(TAG, "经线: " + location.getLongitude());
+                    Log.d(TAG, "方向: " + location.getDirection());
                     Log.d(TAG, "国家: " + location.getCountry());
                     Log.d(TAG, "省: " + location.getProvince());
                     Log.d(TAG, "市: " + location.getCity());
@@ -159,7 +187,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mSearchLayout = findViewById(R.id.ll_search);
         mMainRelativeLayout = findViewById(R.id.main_rl);
         mFindMeCardView = findViewById(R.id.find_me_cardview);
-
+        bmb = findViewById(R.id.bmb);
         //获取地图控件引用
         mMapView =  findViewById(R.id.bmapView);
         mBaiduMap = mMapView.getMap();
@@ -184,7 +212,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
 //注册LocationListener监听器
-        MyLocationListener myLocationListener = new MyLocationListener();
+        myLocationListener = new MyLocationListener();
         mLocationClient.registerLocationListener(myLocationListener);
 
         mFindMeButton.setOnClickListener(this);
@@ -214,7 +242,47 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         //创建驾车线路规划检索实例；
         routePlanSearch = RoutePlanSearch.newInstance();
 
+//        for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++) {
+//            TextOutsideCircleButton.Builder builder = new TextOutsideCircleButton.Builder()
+//                    .normalImageRes(R.drawable.ic_launcher_background)
+//                    .normalText("Butter Doesn't fly!");
+//            bmb.addBuilder(builder);
+//        }
 
+
+        TextOutsideCircleButton.Builder builder1 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_daohang)
+                .normalText("路线规划")
+                .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+                        showDaohangPop();
+                    }
+                });
+        bmb.addBuilder(builder1);
+        TextOutsideCircleButton.Builder builder2 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_study)
+                .normalText("图书馆打卡") .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+                        Toast.makeText(MainActivity.this,"图书馆打卡",Toast.LENGTH_SHORT).show();
+                        mBaiduMap.clear();
+                        OverlayOptions ooCircle = new CircleOptions().fillColor(0x4057FFF8)
+                                .center(new LatLng(26.064609,119.204299)).stroke(new Stroke(1, 0xB6FFFFFF)).radius(100);
+                        mBaiduMap.addOverlay(ooCircle);
+                        mHandler.post(run);
+                    }
+                });
+        bmb.addBuilder(builder2);
+        TextOutsideCircleButton.Builder builder3 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_eat)
+                .normalText("食堂打卡") .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+                        Toast.makeText(MainActivity.this,"食堂打卡",Toast.LENGTH_SHORT).show();
+                    }
+                });
+        bmb.addBuilder(builder3);
     }
 
     @Override
@@ -234,6 +302,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         MyLocationData.Builder builder = new MyLocationData.Builder();
         builder.latitude(location.getLatitude());
         builder.longitude(location.getLongitude());
+        builder.direction(location.getDirection());
         MyLocationData locationData = builder.build();
         mBaiduMap.setMyLocationData(locationData);
     }
@@ -253,7 +322,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             @Override
             public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
-                Toast.makeText(MainActivity.this,"开始",Toast.LENGTH_SHORT).show();
+                mBaiduMap.clear();
+                Toast.makeText(MainActivity.this,"麋鹿正在为您寻找路线哦~~",Toast.LENGTH_SHORT).show();
                 if (walkingRouteResult == null || walkingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
                     Log.d(TAG, "onGetWalkingRouteResult: " + walkingRouteResult.error);
                     Toast.makeText(MainActivity.this,"抱歉，未找到结果",Toast.LENGTH_SHORT).show();
@@ -265,7 +335,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     return;
                 }
                 if (walkingRouteResult.error == SearchResult.ERRORNO.NO_ERROR) {
-                    Toast.makeText(MainActivity.this,"导航成功",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this,"有麋鹿，不迷路~~~",Toast.LENGTH_SHORT).show();
 //                                    nodeIndex = -1;
 //                    mBtnPre.setVisibility(View.VISIBLE);
 //                    mBtnNext.setVisibility(View.VISIBLE);
@@ -321,7 +391,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         LatLng ll = new LatLng(mCurrentX,mCurrentY);
         MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(ll);
         mBaiduMap.animateMapStatus(update);
-        update = MapStatusUpdateFactory.zoomTo(19f);
+        update = MapStatusUpdateFactory.zoomTo(mZoomScale);
         mBaiduMap.animateMapStatus(update);
 
     }
@@ -454,5 +524,180 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         return false;
     }
 
+
+    private void showDaohangPop(){
+        View popView = View.inflate(MainActivity.this,R.layout.layout_daohang_pop,null);
+        final EditText startEdit = popView.findViewById(R.id.edit_text_start);
+        final EditText endEdit = popView.findViewById(R.id.edit_text_end);
+        startEdit.setOnKeyListener(null);
+        endEdit.setOnKeyListener(null);
+        startEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentFcous = v;
+                startEdit.setBackground(getDrawable(R.drawable.seleted_bg));
+                endEdit.setBackground(getDrawable(R.drawable.unseleted_bg));
+            }
+        });
+        endEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentFcous = v;
+                startEdit.setBackground(getDrawable(R.drawable.unseleted_bg));
+                endEdit.setBackground(getDrawable(R.drawable.seleted_bg));
+            }
+        });
+        RecyclerView recyclerView = popView.findViewById(R.id.pop_rl_1);
+        DaohangAdapter daohangAdapter = new DaohangAdapter(this, new ArrayList<String>(PositionData.data.keySet()));
+        Log.d(TAG, "showDaohangPop: " + PositionData.data.keySet().size());
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(daohangAdapter);
+        pop = new PopupWindow(popView, -1, -2);
+        pop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        pop.setOutsideTouchable(true);
+        pop.setFocusable(true);
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.alpha = 0.5f;
+        getWindow().setAttributes(lp);
+        pop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.alpha = 1f;
+                getWindow().setAttributes(lp);
+            }
+        });
+   //     pop.setAnimationStyle(R.style.main_menu_photo_anim);
+        pop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
+
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                switch (view.getId()) {
+//                    case R.id.tv_album:
+//
+//                        break;
+//                    case R.id.tv_camera:
+//
+//                    case R.id.tv_cancel:
+//                        //取消
+//                        break;
+                }
+                closePopupWindow();
+            }
+        };
+    }
+    private void closePopupWindow() {
+        if (pop != null && pop.isShowing()) {
+            pop.dismiss();
+            pop = null;
+            mCurrentFcous = null;
+        }
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        //两次点击返回按钮退出程序
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
+            if ((System.currentTimeMillis() - exitTime)>2000){
+                Toast.makeText(getApplicationContext(),"再按一次退出应用",Toast.LENGTH_SHORT).show();
+                exitTime = System.currentTimeMillis();
+            }else {
+                finish();
+            //    ActivityCollector.finishAll();
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void setTextOption(LatLng point, String str, String color) {
+        //使用MakerInfoWindow
+        if (point == null) return;
+        TextView view = new TextView(getApplicationContext());
+        view.setBackgroundResource(R.mipmap.map_textbg);
+        view.setPadding(0, 23, 0, 0);
+        view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setTextSize(14);
+        view.setGravity(Gravity.CENTER);
+        view.setText(str);
+        view.setTextColor(Color.parseColor(color));
+        mInfoWindow = new InfoWindow(view, point, 170);
+        mBaiduMap.showInfoWindow(mInfoWindow);
+    }
+
+    private void setMarkerOptions(LatLng ll, int icon) {
+        if (ll == null) return;
+        BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(icon);
+        MarkerOptions ooD = new MarkerOptions().position(ll).icon(bitmap);
+        mBaiduMap.addOverlay(ooD);
+    }
+
+
+    private void setMapZoomScale(LatLng ll) {
+        if (mDestinationPoint == null) {//打卡坐标不为空
+            //mZoomScale = getZoomScale(ll);
+            mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(ll, mZoomScale));//缩放
+        } else {
+         //   mZoomScale = getZoomScale(ll);
+            mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(new LatLng(mCurrentX,mCurrentY), mZoomScale));//缩放
+        }
+    }
+
+    private Runnable run = new Runnable() {
+        @Override
+        public void run() {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");// HH:mm:ss
+       //     Date date = new Date(System.currentTimeMillis());//获取当前时间
+       //     mTime_tv.setText(simpleDateFormat.format(date)); //更新时间
+            mHandler.sendEmptyMessage(0);
+        }
+    };
+
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+        //    BDLocation location = (BDLocation) msg.obj;
+            LatLng LocationPoint = new LatLng(mCurrentX, mCurrentY);
+            //打卡范围
+            mDestinationPoint = PositionData.data.get("图书馆");//假设公司坐标
+     //       setCircleOptions();
+            //计算两点距离,单位：米
+            double mDistance = DistanceUtil.getDistance(PositionData.data.get("图书馆"), LocationPoint);
+            if (mDistance <= 100) {
+                //显示文字
+                setTextOption(mDestinationPoint, "开始学习叭~~", "#7ED321");
+                //目的地图标
+                setMarkerOptions(mDestinationPoint, R.mipmap.arrive_icon);
+                //按钮颜色
+                //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_yellow));
+             //   mBaiduMap.setMyLocationEnabled(false);
+            } else {
+                setTextOption(LocationPoint, "您不在图书馆范围之内", "#FF6C6C");
+                setMarkerOptions(mDestinationPoint, R.mipmap.restaurant_icon);
+                //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_gray));
+            //    mBaiduMap.setMyLocationEnabled(true);
+            }
+            // mDistance_tv.setText("距离目的地：" + mDistance + "米");
+            //缩放地图
+            setMapZoomScale(LocationPoint);
+
+            mHandler2.sendEmptyMessageDelayed(0,3000);
+        }
+    };
+
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler2 = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            mBaiduMap.clear();
+        }
+    };
 
 }

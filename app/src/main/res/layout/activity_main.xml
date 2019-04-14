@@ -19,6 +19,7 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         >
         <android.support.v7.widget.CardView
             android:id="@+id/ll_search"
@@ -63,4 +64,16 @@
             android:background="@drawable/icon_find_me" />
     </android.support.v7.widget.CardView>
 
+    <com.nightonke.boommenu.BoomMenuButton
+        android:id="@+id/bmb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        app:bmb_buttonEnum="textOutsideCircle"
+        app:bmb_piecePlaceEnum="piecePlace_dot_3_1"
+        app:bmb_buttonPlaceEnum="buttonPlace_sc_3_1"
+        app:bmb_normalColor="@android:color/holo_red_light"
+        />
 </RelativeLayout>
