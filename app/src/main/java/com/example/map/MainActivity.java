@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -16,7 +17,6 @@ import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
@@ -68,6 +68,15 @@ import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRoutePlanOption;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapapi.utils.DistanceUtil;
+import com.baidu.mapapi.walknavi.WalkNavigateHelper;
+import com.baidu.mapapi.walknavi.adapter.IWEngineInitListener;
+import com.baidu.mapapi.walknavi.adapter.IWRouteGuidanceListener;
+import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
+import com.baidu.mapapi.walknavi.adapter.IWTTSPlayer;
+import com.baidu.mapapi.walknavi.model.RouteGuideKind;
+import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
+import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
+import com.baidu.mapapi.walknavi.params.WalkRouteNodeInfo;
 import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
@@ -89,6 +98,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private MapView mMapView = null;
     private BaiduMap mBaiduMap;
     private InfoWindow mInfoWindow;
+    WalkNavigateHelper walkNavigateHelper;
     private RoutePlanSearch routePlanSearch = null;
     private float mZoomScale = 19f;
     private LatLng mDestinationPoint;
@@ -392,7 +402,150 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     }
 
-    
+    private void luxiandaohang(final LatLng start,final LatLng end){
+        //通过设置BikeNaviLaunchParam对象中的vehicle的值区分：vehicle ：0:普通骑行导航 ； 1:电动车骑行导航，不设置vehicle的值时，默认为0 普通骑行导航。
+
+      //  param = new WalkNaviLaunchParam().stPt(startPt).endPt(endPt).vehicle(0);
+// 使用骑行导航前，需要初始化骑行导航引擎。
+        WalkNavigateHelper.getInstance().initNaviEngine(this, new IWEngineInitListener() {
+            @Override
+            public void engineInitSuccess() {
+                routePlanWithParam(start,end);
+            }
+
+            @Override
+            public void engineInitFail() {
+
+            }
+        });
+    }
+
+
+    /**
+     * 算路设置起、终点参数，然后在回调函数中设置跳转至诱导页面
+     * 开始算路
+     */
+    public void routePlanWithParam(LatLng start,LatLng end) {
+        WalkRouteNodeInfo startNode = new WalkRouteNodeInfo();
+        WalkRouteNodeInfo endNode = new WalkRouteNodeInfo();
+        startNode.setLocation(start);
+        endNode.setLocation(end);
+        WalkNaviLaunchParam param = new WalkNaviLaunchParam().startNodeInfo(startNode).endNodeInfo(endNode);
+        walkNavigateHelper = WalkNavigateHelper.getInstance();
+        walkNavigateHelper.routePlanWithRouteNode(param, new IWRoutePlanListener() {
+            @Override
+            public void onRoutePlanStart() {
+                // Log.d(LTAG, "开始算路");
+            }
+
+            @Override
+            public void onRoutePlanSuccess() {
+//                Log.d(LTAG, "算路成功,跳转至诱导页面");
+//                Intent intent = new Intent();
+//                intent.setClass(BNaviMainActivity.this, WNaviGuideActivity.class);
+//                startActivity(intent);
+            }
+
+            @Override
+            public void onRoutePlanFail(WalkRoutePlanError error) {
+                //      Log.d(LTAG, "算路失败");
+            }
+
+        });
+
+        // 获取诱导页面地图展示View
+//创建诱导View，并接收回调事件。在activity生命周期内调用诱导BikeNavigateHelper对应的生命周期函数。
+//    View view = walkNavigateHelper.onCreate(this);
+//
+//        if (view != null) {
+//        setContentView(view);
+//    }
+// 开始导航
+        walkNavigateHelper.startWalkNavi(this);
+
+// 设置诱导监听, 主要包括导航开始、结束，导航过程中偏航、偏航结束、诱导信息（包含诱导默认图标、诱导类型、诱导信息、剩余距离、时间、振动回调等。
+        walkNavigateHelper.setRouteGuidanceListener(this, new IWRouteGuidanceListener() {
+            @Override
+            public void onRouteGuideIconUpdate(Drawable icon) {
+                //诱导图标更新
+            }
+
+            @Override
+            public void onRouteGuideKind(RouteGuideKind routeGuideKind) {
+                //诱导枚举信息
+            }
+
+            @Override
+            public void onRoadGuideTextUpdate(CharSequence charSequence, CharSequence charSequence1) {
+                //诱导信息
+            }
+
+            @Override
+            public void onRemainDistanceUpdate(CharSequence charSequence) {
+                // 总的剩余距离
+            }
+
+            @Override
+            public void onRemainTimeUpdate(CharSequence charSequence) {
+                //总的剩余时间
+            }
+
+            @Override
+            public void onGpsStatusChange(CharSequence charSequence, Drawable drawable) {
+                //GPS状态发生变化，来自诱导引擎的消息
+            }
+
+            @Override
+            public void onRouteFarAway(CharSequence charSequence, Drawable drawable) {
+                //偏航信息
+            }
+
+            @Override
+            public void onRoutePlanYawing(CharSequence charSequence, Drawable drawable) {
+                //偏航规划中的信息
+            }
+
+            @Override
+            public void onReRouteComplete() {
+                //重新算路成功
+            }
+
+            @Override
+            public void onArriveDest() {
+                //到达目的地
+            }
+
+            @Override
+            public void onVibrate() {
+                //震动
+            }
+
+            @Override
+            public void onIndoorEnd(Message message) {
+
+            }
+
+            @Override
+            public void onFinalEnd(Message message) {
+
+            }
+        });
+
+//设置诱导信息回调监听，此组件只提供导航过程中的文本输出，不包含语音播报功能，需要自行传入对应的语音回调，形成播报功能。建议使用百度语音识别服务SDK。
+//获取语音播报文本方法(注：该接口需要在startWalkNavi方法之前调用，否则不会有回调)：
+        walkNavigateHelper.setTTsPlayer(new IWTTSPlayer() {
+            /**
+             * 诱导文本回调
+             * @param s 诱导文本
+             * @param b 是否抢先播报
+             * @return
+             */
+            @Override
+            public int playTTSText(String s, boolean b) {
+                return 0;
+            }
+        });
+    }
 
     public void requestPower(){
         if (ContextCompat.checkSelfPermission(MainActivity.this,
