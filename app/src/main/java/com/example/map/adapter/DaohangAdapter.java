@@ -19,7 +19,6 @@ public class DaohangAdapter extends RecyclerView.Adapter {
     public DaohangAdapter(Context context,List<String> positions) {
         this.context = context;
         this.positions = positions;
-        Log.d("21323232132", "bind: " + positions.size());
     }
 
     @NonNull

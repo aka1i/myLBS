@@ -1,4 +1,4 @@
-package com.example.map;
+package com.example.map.customView;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -6,6 +6,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.example.map.MainActivity;
 
 public class MyButton extends android.support.v7.widget.AppCompatButton {
     public MyButton(Context context) {
@@ -23,6 +25,7 @@ public class MyButton extends android.support.v7.widget.AppCompatButton {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        boolean temp = super.onTouchEvent(event);
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
                 if (MainActivity.mCurrentFcous != null)
@@ -31,6 +34,6 @@ public class MyButton extends android.support.v7.widget.AppCompatButton {
             case MotionEvent.ACTION_UP:
                 return true;
         }
-        return super.onTouchEvent(event);
+        return temp;
     }
 }

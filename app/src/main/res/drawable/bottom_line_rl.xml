@@ -3,7 +3,7 @@
     <!--各个输入框下面的横线-->
     <item>
         <shape>
-            <solid android:color="@color/grey_1"/>
+            <solid android:color="@color/grey_1" />
         </shape>
     </item>
 

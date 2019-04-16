@@ -15,6 +15,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.transition.AutoTransition;
@@ -30,6 +31,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -70,6 +72,7 @@ import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
+import com.example.map.utils.MyMapUtil;
 import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
@@ -265,12 +268,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .normalText("图书馆打卡") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
-                        Toast.makeText(MainActivity.this,"图书馆打卡",Toast.LENGTH_SHORT).show();
-                        mBaiduMap.clear();
-                        OverlayOptions ooCircle = new CircleOptions().fillColor(0x4057FFF8)
-                                .center(new LatLng(26.064609,119.204299)).stroke(new Stroke(1, 0xB6FFFFFF)).radius(100);
-                        mBaiduMap.addOverlay(ooCircle);
-                        mHandler.post(run);
+                        new Thread(run1).start();
                     }
                 });
         bmb.addBuilder(builder2);
@@ -279,7 +277,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .normalText("食堂打卡") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
-                        Toast.makeText(MainActivity.this,"食堂打卡",Toast.LENGTH_SHORT).show();
+                        new Thread(run2).start();
                     }
                 });
         bmb.addBuilder(builder3);
@@ -308,6 +306,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void findMe(){
+        LatLng ll = new LatLng(mCurrentX,mCurrentY);
+        MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(ll);
+        mBaiduMap.animateMapStatus(update);
+        update = MapStatusUpdateFactory.zoomTo(mZoomScale);
+        mBaiduMap.animateMapStatus(update);
+
+    }
+
+
+    private void luxianguihua(LatLng start,LatLng end){
         //创建驾车线路规划检索监听者；
         OnGetRoutePlanResultListener listener = new OnGetRoutePlanResultListener() {
 
@@ -374,27 +382,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
         //准备检索起、终点信息；
-       PlanNode stNode = PlanNode.withCityNameAndPlaceName("福州","福州大学学生公寓32");
-        PlanNode enNode = PlanNode.withCityNameAndPlaceName("福州", "37栋西2教学楼");
+//        PlanNode stNode = PlanNode.withCityNameAndPlaceName("福州","福州大学学生公寓32");
+       // PlanNode enNode = PlanNode.withCityNameAndPlaceName("福州", "37栋西2教学楼");
         //发起驾车线路规划检索；
-        routePlanSearch.walkingSearch((new WalkingRoutePlanOption())
-                .from(PlanNode.withLocation(new LatLng(locData.latitude,locData.longitude)))
-              //  .from(stNode)
-             //   .to(PlanNode.withLocation(new LatLng(119.201366,26.064479))));
-                .to(enNode));
-        Log.d(TAG, "findMe: " + locData.latitude + "    " + locData.longitude);
-
         routePlanSearch.setOnGetRoutePlanResultListener(listener);
-
-
-
-        LatLng ll = new LatLng(mCurrentX,mCurrentY);
-        MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(ll);
-        mBaiduMap.animateMapStatus(update);
-        update = MapStatusUpdateFactory.zoomTo(mZoomScale);
-        mBaiduMap.animateMapStatus(update);
+        routePlanSearch.walkingSearch((new WalkingRoutePlanOption())
+                .from(PlanNode.withLocation(start))
+                .to(PlanNode.withLocation(end)));
 
     }
+
+    
 
     public void requestPower(){
         if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -529,8 +527,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         View popView = View.inflate(MainActivity.this,R.layout.layout_daohang_pop,null);
         final EditText startEdit = popView.findViewById(R.id.edit_text_start);
         final EditText endEdit = popView.findViewById(R.id.edit_text_end);
-        startEdit.setOnKeyListener(null);
-        endEdit.setOnKeyListener(null);
+        ImageButton daohangButton = popView.findViewById(R.id.daohang_button);
+        mCurrentFcous = startEdit;
+        startEdit.setText("我的位置");
+        daohangButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (startEdit.getText().toString().equals("") || endEdit.getText().toString().equals("")){
+                    Toast.makeText(MainActivity.this,"还未填入起点或重点哦~~",Toast.LENGTH_SHORT).show();
+                    return;
+                }else if (startEdit.getText().toString().equals(endEdit.getText().toString())){
+                    Toast.makeText(MainActivity.this,"起点和终点不能一样哦~~",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                LatLng start = MyMapUtil.changeTextToLatng(startEdit.getText().toString(),mCurrentX,mCurrentY);
+                LatLng end = MyMapUtil.changeTextToLatng(endEdit.getText().toString(),mCurrentX,mCurrentY);
+                luxianguihua(start,end);
+                closePopupWindow();
+            }
+        });
         startEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -547,11 +562,23 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 endEdit.setBackground(getDrawable(R.drawable.seleted_bg));
             }
         });
-        RecyclerView recyclerView = popView.findViewById(R.id.pop_rl_1);
-        DaohangAdapter daohangAdapter = new DaohangAdapter(this, new ArrayList<String>(PositionData.data.keySet()));
-        Log.d(TAG, "showDaohangPop: " + PositionData.data.keySet().size());
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(daohangAdapter);
+        RecyclerView recyclerView1 = popView.findViewById(R.id.pop_rl_1);
+        RecyclerView recyclerView2 = popView.findViewById(R.id.pop_rl_2);
+        RecyclerView recyclerView3 = popView.findViewById(R.id.pop_rl_3);
+        RecyclerView recyclerView4 = popView.findViewById(R.id.pop_rl_4);
+        DaohangAdapter daohangAdapter1 = new DaohangAdapter(this, new ArrayList<String>(PositionData.teachingBuilding.keySet()));
+        DaohangAdapter daohangAdapter2 = new DaohangAdapter(this, new ArrayList<String>(PositionData.canteen.keySet()));
+        DaohangAdapter daohangAdapter3 = new DaohangAdapter(this, new ArrayList<String>(PositionData.scenicSpot.keySet()));
+        DaohangAdapter daohangAdapter4 = new DaohangAdapter(this, new ArrayList<String>(PositionData.others.keySet()));
+        recyclerView1.setLayoutManager(new GridLayoutManager(this,4));
+        recyclerView1.setAdapter(daohangAdapter1);
+        recyclerView2.setLayoutManager(new GridLayoutManager(this,4));
+        recyclerView2.setAdapter(daohangAdapter2);
+        recyclerView3.setLayoutManager(new GridLayoutManager(this,4));
+        recyclerView3.setAdapter(daohangAdapter3);
+        recyclerView4.setLayoutManager(new GridLayoutManager(this,4));
+        recyclerView4.setAdapter(daohangAdapter4);
+
         pop = new PopupWindow(popView, -1, -2);
         pop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         pop.setOutsideTouchable(true);
@@ -569,6 +596,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
         });
    //     pop.setAnimationStyle(R.style.main_menu_photo_anim);
+        pop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         pop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
 
         View.OnClickListener clickListener = new View.OnClickListener() {
@@ -647,7 +675,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    private Runnable run = new Runnable() {
+    private Runnable run1 = new Runnable() {
         @Override
         public void run() {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");// HH:mm:ss
@@ -657,18 +685,33 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     };
 
+    private Runnable run2 = new Runnable() {
+        @Override
+        public void run() {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");// HH:mm:ss
+            //     Date date = new Date(System.currentTimeMillis());//获取当前时间
+            //     mTime_tv.setText(simpleDateFormat.format(date)); //更新时间
+            mHandler2.sendEmptyMessage(0);
+        }
+    };
+
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-        //    BDLocation location = (BDLocation) msg.obj;
+        //   BDLocation location = (BDLocation) msg.obj;
+            mBaiduMap.clear();
+            OverlayOptions ooCircle = new CircleOptions().fillColor(0x4057FFF8)
+                    .center(PositionData.teachingBuilding.get("图书馆")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(100);
+            mBaiduMap.addOverlay(ooCircle);
             LatLng LocationPoint = new LatLng(mCurrentX, mCurrentY);
             //打卡范围
-            mDestinationPoint = PositionData.data.get("图书馆");//假设公司坐标
+            mDestinationPoint = PositionData.teachingBuilding.get("图书馆");//假设公司坐标
      //       setCircleOptions();
             //计算两点距离,单位：米
-            double mDistance = DistanceUtil.getDistance(PositionData.data.get("图书馆"), LocationPoint);
+            double mDistance = DistanceUtil.getDistance(PositionData.teachingBuilding.get("图书馆"), LocationPoint);
             if (mDistance <= 100) {
                 //显示文字
                 setTextOption(mDestinationPoint, "开始学习叭~~", "#7ED321");
@@ -679,7 +722,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              //   mBaiduMap.setMyLocationEnabled(false);
             } else {
                 setTextOption(LocationPoint, "您不在图书馆范围之内", "#FF6C6C");
-                setMarkerOptions(mDestinationPoint, R.mipmap.restaurant_icon);
+                setMarkerOptions(mDestinationPoint, R.mipmap.library_icon);
                 //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_gray));
             //    mBaiduMap.setMyLocationEnabled(true);
             }
@@ -687,7 +730,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             //缩放地图
             setMapZoomScale(LocationPoint);
 
-            mHandler2.sendEmptyMessageDelayed(0,3000);
+            mHandler3.removeMessages(0);
+            mHandler3.sendEmptyMessageDelayed(0,3000);
         }
     };
 
@@ -696,8 +740,68 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
+            OverlayOptions ooCircle1 = new CircleOptions().fillColor(0x4057FFF8)
+                    .center(PositionData.canteen.get("紫荆园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+            mBaiduMap.addOverlay(ooCircle1);
+            OverlayOptions ooCircle2 = new CircleOptions().fillColor(0x4057FFF8)
+                    .center(PositionData.canteen.get("玫瑰园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+            mBaiduMap.addOverlay(ooCircle2);
+            OverlayOptions ooCircle3 = new CircleOptions().fillColor(0x4057FFF8)
+                    .center(PositionData.canteen.get("京元")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+            mBaiduMap.addOverlay(ooCircle3);
+            OverlayOptions ooCircle4 = new CircleOptions().fillColor(0x4057FFF8)
+                    .center(PositionData.canteen.get("丁香园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+            mBaiduMap.addOverlay(ooCircle4);
+
+            LatLng LocationPoint = new LatLng(mCurrentX, mCurrentY);
+            //打卡范围
+            LatLng[] mDestinationPoints = {PositionData.canteen.get("紫荆园"),
+                                            PositionData.canteen.get("玫瑰园"),
+                                            PositionData.canteen.get("京元"),
+                                            PositionData.canteen.get("丁香园")};
+            double mMinDistance =  DistanceUtil.getDistance(PositionData.canteen.get("紫荆园"), LocationPoint);
+            mDestinationPoint = PositionData.canteen.get("紫荆园");
+            for (int i = 1 ; i < mDestinationPoints.length;i++){
+                double mDistance = DistanceUtil.getDistance(mDestinationPoints[i], LocationPoint);
+                if (mMinDistance > mDistance){
+                    mDestinationPoint = mDestinationPoints[i];
+                }
+            }
+            //       setCircleOptions();
+            //计算两点距离,单位：米
+
+
+            if (mMinDistance <= 50) {
+                Log.d(TAG, "handleMessage: " + mDestinationPoint.latitude + "    " + mDestinationPoint.longitude);
+                //显示文字
+                setTextOption(mDestinationPoint, "要恰饭的嘛~~！！", "#7ED321");
+                //目的地图标
+                setMarkerOptions(mDestinationPoint, R.mipmap.arrive_icon);
+                //按钮颜色
+                //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_yellow));
+            } else {
+                setTextOption(LocationPoint, "您不在食堂范围之内", "#FF6C6C");
+                setMarkerOptions(mDestinationPoint, R.mipmap.library_icon);
+            }
+
+            // mDistance_tv.setText("距离目的地：" + mDistance + "米");
+
+            setMapZoomScale(LocationPoint);
+
+            mHandler3.removeMessages(0);
+            mHandler3.sendEmptyMessageDelayed(0,3000);
+        }
+    };
+
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler3 = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
             mBaiduMap.clear();
         }
     };
+
 
 }
