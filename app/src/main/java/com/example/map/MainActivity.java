@@ -65,6 +65,7 @@ import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
 import com.baidu.mapapi.search.route.PlanNode;
 import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.TransitRouteResult;
+import com.baidu.mapapi.search.route.WalkingRouteLine;
 import com.baidu.mapapi.search.route.WalkingRoutePlanOption;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapapi.utils.DistanceUtil;
@@ -91,32 +92,38 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
-    private static String TAG = "MainActivity";
-    private long exitTime=0;
     MyLocationListener myLocationListener;
     private PopupWindow pop;
-    private MapView mMapView = null;
-    private BaiduMap mBaiduMap;
-    private InfoWindow mInfoWindow;
-    WalkNavigateHelper walkNavigateHelper;
-    private RoutePlanSearch routePlanSearch = null;
-    private float mZoomScale = 19f;
-    private LatLng mDestinationPoint;
-    public static View mCurrentFcous;
+    private InfoWindow mInfoWindow; //签到信息框
     private Button mFindMeButton;
     private EditText mSearch;
     private CardView mSearchLayout;
     private CardView mFindMeCardView;
-    private LocationClient mLocationClient;
+    private BoomMenuButton mBmb;
     private RelativeLayout mMainRelativeLayout;
+
+    private MapView mMapView = null;
+    private BaiduMap mBaiduMap;
+
+
+    private LocationClient mLocationClient;
+    WalkNavigateHelper walkNavigateHelper;  //步行导航
+    private RoutePlanSearch routePlanSearch = null; //步行规划
+    private float mZoomScale = 19f;  //指定缩放大小
+    private LatLng mDestinationPoint; //签到目的地
+    public static View mCurrentFcous; //当前焦点
+    private MyLocationData locData; //当前位置信息
+    private WalkingRouteLine route;
+
     private TransitionSet mSet;
-    private RouteLine route = null;
     OverlayManager routeOverlay = null;
-    MyLocationData locData;
-    private BoomMenuButton bmb;
-    private double mCurrentX;
-    private double mCurrentY;
-    private boolean isFirstLoad = true;
+
+
+    private static String TAG = "MainActivity";
+    private double mCurrentX;  //当前位置纬度
+    private double mCurrentY;  //当前位置经度
+    private long exitTime=0;   //最近一次点击返回键的时间
+    private boolean isFirstLoad = true; //是否为第一次进入应用
     private String[] permissions = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION,};
     @Override
@@ -130,8 +137,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         requestPower();
 
         init();
-
-
 
     }
     @Override
@@ -158,49 +163,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         routePlanSearch.destroy();
     }
 
-    public class MyLocationListener extends BDAbstractLocationListener {
-        @Override
-        public void onReceiveLocation(final BDLocation location) {
-            //mapView 销毁后不在处理新接收的位置
-            if (location == null || mMapView == null){
-                return;
-            }
-            mCurrentX = location.getLatitude();
-            mCurrentY = location.getLongitude();
-            locData = new MyLocationData.Builder()
-                    .accuracy(location.getRadius())
-                    // 此处设置开发者获取到的方向信息，顺时针0-360
-                    .direction(location.getDirection()).latitude(location.getLatitude())
-                    .longitude(location.getLongitude()).build();
-            mBaiduMap.setMyLocationData(locData);
-            mBaiduMap.setMyLocationConfiguration(new MyLocationConfiguration(
-                    MyLocationConfiguration.LocationMode.NORMAL, true, null));  //显示方向
-            if (location.getLocType() == BDLocation.TypeGpsLocation || location.getLocType() == BDLocation.TypeNetWorkLocation)
-                navigateTo(location);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "纬度: " + location.getLatitude());
-                    Log.d(TAG, "经线: " + location.getLongitude());
-                    Log.d(TAG, "方向: " + location.getDirection());
-                    Log.d(TAG, "国家: " + location.getCountry());
-                    Log.d(TAG, "省: " + location.getProvince());
-                    Log.d(TAG, "市: " + location.getCity());
-                    Log.d(TAG, "区: " + location.getDistrict());
-                    Log.d(TAG, "街道: " + location.getStreet());
-                    Log.d(TAG, "定位方式: " + location.getLocType());
-                }
-            }).start();
-        }
-    }
-
     private void init(){
         mFindMeButton = findViewById(R.id.find_me_btn);
         mSearch = findViewById(R.id.edittxt_search);
         mSearchLayout = findViewById(R.id.ll_search);
         mMainRelativeLayout = findViewById(R.id.main_rl);
         mFindMeCardView = findViewById(R.id.find_me_cardview);
-        bmb = findViewById(R.id.bmb);
+        mBmb = findViewById(R.id.bmb);
         //获取地图控件引用
         mMapView =  findViewById(R.id.bmapView);
         mBaiduMap = mMapView.getMap();
@@ -255,11 +224,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         //创建驾车线路规划检索实例；
         routePlanSearch = RoutePlanSearch.newInstance();
 
-//        for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++) {
+//        for (int i = 0; i < mBmb.getPiecePlaceEnum().pieceNumber(); i++) {
 //            TextOutsideCircleButton.Builder builder = new TextOutsideCircleButton.Builder()
 //                    .normalImageRes(R.drawable.ic_launcher_background)
 //                    .normalText("Butter Doesn't fly!");
-//            bmb.addBuilder(builder);
+//            mBmb.addBuilder(builder);
 //        }
 
 
@@ -272,7 +241,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         showDaohangPop();
                     }
                 });
-        bmb.addBuilder(builder1);
+        mBmb.addBuilder(builder1);
         TextOutsideCircleButton.Builder builder2 = new TextOutsideCircleButton.Builder()
                 .normalImageRes(R.drawable.fad_study)
                 .normalText("图书馆打卡") .listener(new OnBMClickListener() {
@@ -281,7 +250,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         new Thread(run1).start();
                     }
                 });
-        bmb.addBuilder(builder2);
+        mBmb.addBuilder(builder2);
         TextOutsideCircleButton.Builder builder3 = new TextOutsideCircleButton.Builder()
                 .normalImageRes(R.drawable.fad_eat)
                 .normalText("食堂打卡") .listener(new OnBMClickListener() {
@@ -290,7 +259,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         new Thread(run2).start();
                     }
                 });
-        bmb.addBuilder(builder3);
+        mBmb.addBuilder(builder3);
     }
 
     @Override
@@ -695,6 +664,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 }
                 LatLng start = MyMapUtil.changeTextToLatng(startEdit.getText().toString(),mCurrentX,mCurrentY);
                 LatLng end = MyMapUtil.changeTextToLatng(endEdit.getText().toString(),mCurrentX,mCurrentY);
+//                Log.d(TAG, "起点: " + start.latitude + "    " + start.longitude);
+//                Log.d(TAG, "终点: " + end.latitude + "    " + end.longitude);
                 luxianguihua(start,end);
                 closePopupWindow();
             }
@@ -956,5 +927,39 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     };
 
-
+    public class MyLocationListener extends BDAbstractLocationListener {
+        @Override
+        public void onReceiveLocation(final BDLocation location) {
+            //mapView 销毁后不在处理新接收的位置
+            if (location == null || mMapView == null){
+                return;
+            }
+            mCurrentX = location.getLatitude();
+            mCurrentY = location.getLongitude();
+            locData = new MyLocationData.Builder()
+                    .accuracy(location.getRadius())
+                    // 此处设置开发者获取到的方向信息，顺时针0-360
+                    .direction(location.getDirection()).latitude(location.getLatitude())
+                    .longitude(location.getLongitude()).build();
+            mBaiduMap.setMyLocationData(locData);
+            mBaiduMap.setMyLocationConfiguration(new MyLocationConfiguration(
+                    MyLocationConfiguration.LocationMode.NORMAL, true, null));  //显示方向
+            if (location.getLocType() == BDLocation.TypeGpsLocation || location.getLocType() == BDLocation.TypeNetWorkLocation)
+                navigateTo(location);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "纬度: " + location.getLatitude());
+                    Log.d(TAG, "经线: " + location.getLongitude());
+                    Log.d(TAG, "方向: " + location.getDirection());
+                    Log.d(TAG, "国家: " + location.getCountry());
+                    Log.d(TAG, "省: " + location.getProvince());
+                    Log.d(TAG, "市: " + location.getCity());
+                    Log.d(TAG, "区: " + location.getDistrict());
+                    Log.d(TAG, "街道: " + location.getStreet());
+                    Log.d(TAG, "定位方式: " + location.getLocType());
+                }
+            }).start();
+        }
+    }
 }
