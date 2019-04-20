@@ -3,12 +3,12 @@ package com.example.map;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -55,7 +55,6 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.BikingRouteResult;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
@@ -71,10 +70,7 @@ import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.baidu.mapapi.walknavi.WalkNavigateHelper;
 import com.baidu.mapapi.walknavi.adapter.IWEngineInitListener;
-import com.baidu.mapapi.walknavi.adapter.IWRouteGuidanceListener;
 import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
-import com.baidu.mapapi.walknavi.adapter.IWTTSPlayer;
-import com.baidu.mapapi.walknavi.model.RouteGuideKind;
 import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
 import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
 import com.baidu.mapapi.walknavi.params.WalkRouteNodeInfo;
@@ -107,7 +103,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
     private LocationClient mLocationClient;
-    WalkNavigateHelper walkNavigateHelper;  //步行导航
     private RoutePlanSearch routePlanSearch = null; //步行规划
     private float mZoomScale = 19f;  //指定缩放大小
     private LatLng mDestinationPoint; //签到目的地
@@ -294,7 +289,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
 
-    private void luxianguihua(LatLng start,LatLng end){
+    private void luxianguihua(final LatLng start,final LatLng end){
         //创建驾车线路规划检索监听者；
         OnGetRoutePlanResultListener listener = new OnGetRoutePlanResultListener() {
 
@@ -318,14 +313,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 if (walkingRouteResult.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
                     Toast.makeText(MainActivity.this,"起终点或途经点地址有岐义",Toast.LENGTH_SHORT).show();
                     // 起终点或途经点地址有岐义，通过以下接口获取建议查询信息
-                    Log.d(TAG, "onGetWalkingRouteResult: " + walkingRouteResult);
                     return;
                 }
                 if (walkingRouteResult.error == SearchResult.ERRORNO.NO_ERROR) {
                     Toast.makeText(MainActivity.this,"有麋鹿，不迷路~~~",Toast.LENGTH_SHORT).show();
-//                                    nodeIndex = -1;
-//                    mBtnPre.setVisibility(View.VISIBLE);
-//                    mBtnNext.setVisibility(View.VISIBLE);
                     route = walkingRouteResult.getRouteLines().get(0);
                     WalkingRouteOverlay overlay = new WalkingRouteOverlay(mBaiduMap);
                     mBaiduMap.setOnMarkerClickListener(overlay);
@@ -333,6 +324,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     overlay.setData(walkingRouteResult.getRouteLines().get(0));
                     overlay.addToMap();
                     overlay.zoomToSpan();
+                    luxiandaohang(start,end);
                 }
 
             }
@@ -374,19 +366,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void luxiandaohang(final LatLng start,final LatLng end){
         //通过设置BikeNaviLaunchParam对象中的vehicle的值区分：vehicle ：0:普通骑行导航 ； 1:电动车骑行导航，不设置vehicle的值时，默认为0 普通骑行导航。
 
-      //  param = new WalkNaviLaunchParam().stPt(startPt).endPt(endPt).vehicle(0);
 // 使用骑行导航前，需要初始化骑行导航引擎。
-        WalkNavigateHelper.getInstance().initNaviEngine(this, new IWEngineInitListener() {
-            @Override
-            public void engineInitSuccess() {
-                routePlanWithParam(start,end);
-            }
+        try {
+            WalkNavigateHelper.getInstance().initNaviEngine(this, new IWEngineInitListener() {
+                @Override
+                public void engineInitSuccess() {
+                    Log.d(TAG, "WalkNavi engineInitSuccess");
+                    routePlanWithParam(start,end);
+                }
 
-            @Override
-            public void engineInitFail() {
-
-            }
-        });
+                @Override
+                public void engineInitFail() {
+                    Log.d(TAG, "WalkNavi engineInitFail");
+                    WalkNavigateHelper.getInstance().unInitNaviEngine();
+                }
+            });
+        } catch (Exception e) {
+            Log.d(TAG, "startBikeNavi Exception");
+            e.printStackTrace();
+        }
     }
 
 
@@ -400,8 +398,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         startNode.setLocation(start);
         endNode.setLocation(end);
         WalkNaviLaunchParam param = new WalkNaviLaunchParam().startNodeInfo(startNode).endNodeInfo(endNode);
-        walkNavigateHelper = WalkNavigateHelper.getInstance();
-        walkNavigateHelper.routePlanWithRouteNode(param, new IWRoutePlanListener() {
+        param.extraNaviMode(0);
+        WalkNavigateHelper.getInstance().routePlanWithRouteNode(param, new IWRoutePlanListener() {
             @Override
             public void onRoutePlanStart() {
                 // Log.d(LTAG, "开始算路");
@@ -410,110 +408,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onRoutePlanSuccess() {
 //                Log.d(LTAG, "算路成功,跳转至诱导页面");
-//                Intent intent = new Intent();
-//                intent.setClass(BNaviMainActivity.this, WNaviGuideActivity.class);
-//                startActivity(intent);
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, WNaviGuideActivity.class);
+                startActivity(intent);
             }
 
             @Override
             public void onRoutePlanFail(WalkRoutePlanError error) {
+                WalkNavigateHelper.getInstance().unInitNaviEngine();
                 //      Log.d(LTAG, "算路失败");
             }
 
         });
 
-        // 获取诱导页面地图展示View
-//创建诱导View，并接收回调事件。在activity生命周期内调用诱导BikeNavigateHelper对应的生命周期函数。
-//    View view = walkNavigateHelper.onCreate(this);
-//
-//        if (view != null) {
-//        setContentView(view);
-//    }
-// 开始导航
-        walkNavigateHelper.startWalkNavi(this);
-
-// 设置诱导监听, 主要包括导航开始、结束，导航过程中偏航、偏航结束、诱导信息（包含诱导默认图标、诱导类型、诱导信息、剩余距离、时间、振动回调等。
-        walkNavigateHelper.setRouteGuidanceListener(this, new IWRouteGuidanceListener() {
-            @Override
-            public void onRouteGuideIconUpdate(Drawable icon) {
-                //诱导图标更新
-            }
-
-            @Override
-            public void onRouteGuideKind(RouteGuideKind routeGuideKind) {
-                //诱导枚举信息
-            }
-
-            @Override
-            public void onRoadGuideTextUpdate(CharSequence charSequence, CharSequence charSequence1) {
-                //诱导信息
-            }
-
-            @Override
-            public void onRemainDistanceUpdate(CharSequence charSequence) {
-                // 总的剩余距离
-            }
-
-            @Override
-            public void onRemainTimeUpdate(CharSequence charSequence) {
-                //总的剩余时间
-            }
-
-            @Override
-            public void onGpsStatusChange(CharSequence charSequence, Drawable drawable) {
-                //GPS状态发生变化，来自诱导引擎的消息
-            }
-
-            @Override
-            public void onRouteFarAway(CharSequence charSequence, Drawable drawable) {
-                //偏航信息
-            }
-
-            @Override
-            public void onRoutePlanYawing(CharSequence charSequence, Drawable drawable) {
-                //偏航规划中的信息
-            }
-
-            @Override
-            public void onReRouteComplete() {
-                //重新算路成功
-            }
-
-            @Override
-            public void onArriveDest() {
-                //到达目的地
-            }
-
-            @Override
-            public void onVibrate() {
-                //震动
-            }
-
-            @Override
-            public void onIndoorEnd(Message message) {
-
-            }
-
-            @Override
-            public void onFinalEnd(Message message) {
-
-            }
-        });
-
-//设置诱导信息回调监听，此组件只提供导航过程中的文本输出，不包含语音播报功能，需要自行传入对应的语音回调，形成播报功能。建议使用百度语音识别服务SDK。
-//获取语音播报文本方法(注：该接口需要在startWalkNavi方法之前调用，否则不会有回调)：
-        walkNavigateHelper.setTTsPlayer(new IWTTSPlayer() {
-            /**
-             * 诱导文本回调
-             * @param s 诱导文本
-             * @param b 是否抢先播报
-             * @return
-             */
-            @Override
-            public int playTTSText(String s, boolean b) {
-                return 0;
-            }
-        });
     }
 
     public void requestPower(){
@@ -946,20 +853,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     MyLocationConfiguration.LocationMode.NORMAL, true, null));  //显示方向
             if (location.getLocType() == BDLocation.TypeGpsLocation || location.getLocType() == BDLocation.TypeNetWorkLocation)
                 navigateTo(location);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "纬度: " + location.getLatitude());
-                    Log.d(TAG, "经线: " + location.getLongitude());
-                    Log.d(TAG, "方向: " + location.getDirection());
-                    Log.d(TAG, "国家: " + location.getCountry());
-                    Log.d(TAG, "省: " + location.getProvince());
-                    Log.d(TAG, "市: " + location.getCity());
-                    Log.d(TAG, "区: " + location.getDistrict());
-                    Log.d(TAG, "街道: " + location.getStreet());
-                    Log.d(TAG, "定位方式: " + location.getLocType());
-                }
-            }).start();
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Log.d(TAG, "纬度: " + location.getLatitude());
+//                    Log.d(TAG, "经线: " + location.getLongitude());
+//                    Log.d(TAG, "方向: " + location.getDirection());
+//                    Log.d(TAG, "国家: " + location.getCountry());
+//                    Log.d(TAG, "省: " + location.getProvince());
+//                    Log.d(TAG, "市: " + location.getCity());
+//                    Log.d(TAG, "区: " + location.getDistrict());
+//                    Log.d(TAG, "街道: " + location.getStreet());
+//                    Log.d(TAG, "定位方式: " + location.getLocType());
+//                }
+//            }).start();
         }
     }
 }
