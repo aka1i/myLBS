@@ -1,5 +1,6 @@
 package com.example.map;
 
+import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +15,7 @@ import com.baidu.mapapi.walknavi.adapter.IWTTSPlayer;
 import com.baidu.mapapi.walknavi.model.RouteGuideKind;
 import com.baidu.platform.comapi.walknavi.WalkNaviModeSwitchListener;
 
-public class WNaviGuideActivity extends AppCompatActivity {
+public class WNaviGuideActivity extends Activity {
     WalkNavigateHelper mNaviHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
