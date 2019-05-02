@@ -23,7 +23,6 @@ public class WNaviGuideActivity extends Activity {
         // 获取诱导页面地图展示View
 //创建诱导View，并接收回调事件。在activity生命周期内调用诱导BikeNavigateHelper对应的生命周期函数。
         mNaviHelper = WalkNavigateHelper.getInstance();
-        Log.d("3213123123213", "onCreate: " + mNaviHelper);
         try {
             View view = mNaviHelper.onCreate(WNaviGuideActivity.this);
             if (view != null) {

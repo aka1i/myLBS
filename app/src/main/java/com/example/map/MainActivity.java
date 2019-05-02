@@ -79,6 +79,7 @@ import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
 import com.example.map.utils.MyMapUtil;
+import com.necer.painter.InnerPainter;
 import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
@@ -89,7 +90,9 @@ import java.util.ArrayList;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     MyLocationListener myLocationListener;
-    private PopupWindow pop;
+    private PopupWindow choosePop;
+    private PopupWindow guihuaTitlePop;
+    private PopupWindow guihuaBottomPop;
     private InfoWindow mInfoWindow; //签到信息框
     private Button mFindMeButton;
     private EditText mSearch;
@@ -119,6 +122,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private double mCurrentY;  //当前位置经度
     private long exitTime=0;   //最近一次点击返回键的时间
     private boolean isFirstLoad = true; //是否为第一次进入应用
+    private boolean canDaohang;
     private String[] permissions = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION,};
     @Override
@@ -139,6 +143,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onResume();
         //在activity执行onResume时执行mMapView. onResume ()，实现地图生命周期管理
         mMapView.onResume();
+        // 地图清空
+        mBaiduMap.clear();
     }
     @Override
     protected void onPause() {
@@ -233,7 +239,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
-                        showDaohangPop();
+                        showGuihuaChoosePop();
                     }
                 });
         mBmb.addBuilder(builder1);
@@ -305,7 +311,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
                 mBaiduMap.clear();
-                Toast.makeText(MainActivity.this,"麋鹿正在为您寻找路线哦~~",Toast.LENGTH_SHORT).show();
                 if (walkingRouteResult == null || walkingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
                     Log.d(TAG, "onGetWalkingRouteResult: " + walkingRouteResult.error);
                     Toast.makeText(MainActivity.this,"抱歉，未找到结果",Toast.LENGTH_SHORT).show();
@@ -324,7 +329,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     overlay.setData(walkingRouteResult.getRouteLines().get(0));
                     overlay.addToMap();
                     overlay.zoomToSpan();
-                    luxiandaohang(start,end);
+                    showGuihuaPop(start,end,route.getDuration(),route.getDistance());
                 }
 
             }
@@ -552,11 +557,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
 
-    private void showDaohangPop(){
-        View popView = View.inflate(MainActivity.this,R.layout.layout_daohang_pop,null);
+    private void showGuihuaChoosePop(){
+        View popView = View.inflate(MainActivity.this,R.layout.layout_daohang_choose_pop,null);
         final EditText startEdit = popView.findViewById(R.id.edit_text_start);
         final EditText endEdit = popView.findViewById(R.id.edit_text_end);
-        ImageButton daohangButton = popView.findViewById(R.id.daohang_button);
+        final ImageButton daohangButton = popView.findViewById(R.id.daohang_button);
         mCurrentFcous = startEdit;
         startEdit.setText("我的位置");
         daohangButton.setOnClickListener(new View.OnClickListener() {
@@ -571,10 +576,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 }
                 LatLng start = MyMapUtil.changeTextToLatng(startEdit.getText().toString(),mCurrentX,mCurrentY);
                 LatLng end = MyMapUtil.changeTextToLatng(endEdit.getText().toString(),mCurrentX,mCurrentY);
-//                Log.d(TAG, "起点: " + start.latitude + "    " + start.longitude);
-//                Log.d(TAG, "终点: " + end.latitude + "    " + end.longitude);
+                canDaohang = startEdit.getText().toString().equals("我的位置");
                 luxianguihua(start,end);
-                closePopupWindow();
+                closeChoosePopupWindow();
             }
         });
         startEdit.setOnClickListener(new View.OnClickListener() {
@@ -610,14 +614,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         recyclerView4.setLayoutManager(new GridLayoutManager(this,4));
         recyclerView4.setAdapter(daohangAdapter4);
 
-        pop = new PopupWindow(popView, -1, -2);
-        pop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        pop.setOutsideTouchable(true);
-        pop.setFocusable(true);
+        choosePop = new PopupWindow(popView, -1, -2);
+        choosePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        choosePop.setOutsideTouchable(true);
+        choosePop.setFocusable(true);
         WindowManager.LayoutParams lp = getWindow().getAttributes();
         lp.alpha = 0.5f;
         getWindow().setAttributes(lp);
-        pop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+        choosePop.setOnDismissListener(new PopupWindow.OnDismissListener() {
 
             @Override
             public void onDismiss() {
@@ -626,32 +630,77 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 getWindow().setAttributes(lp);
             }
         });
-   //     pop.setAnimationStyle(R.style.main_menu_photo_anim);
-        pop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        pop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
+   //     choosePop.setAnimationStyle(R.style.main_menu_photo_anim);
+        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        choosePop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
 
-        View.OnClickListener clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                switch (view.getId()) {
-//                    case R.id.tv_album:
-//
-//                        break;
-//                    case R.id.tv_camera:
-//
-//                    case R.id.tv_cancel:
-//                        //取消
-//                        break;
-                }
-                closePopupWindow();
-            }
-        };
     }
-    private void closePopupWindow() {
-        if (pop != null && pop.isShowing()) {
-            pop.dismiss();
-            pop = null;
+
+    private void showGuihuaPop(final LatLng start, final LatLng end, int duration, int distance){
+        mBmb.setVisibility(View.GONE);
+        View titlePopView = View.inflate(MainActivity.this,R.layout.layout_daohang_title_pop,null);
+        View bottomPopView = View.inflate(MainActivity.this,R.layout.layout_daohang_bottom_pop,null);
+
+        TextView timeText = bottomPopView.findViewById(R.id.time);
+        TextView distanceText = bottomPopView.findViewById(R.id.distance);
+        Button goToNavigation = bottomPopView.findViewById(R.id.go_to_navigation);
+
+        guihuaTitlePop = new PopupWindow(titlePopView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        guihuaBottomPop = new PopupWindow(bottomPopView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        goToNavigation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (canDaohang)
+                    luxiandaohang(start,end);
+                else
+                    Toast.makeText(MainActivity.this,"只能从\"我的位置\"开始导航哦",Toast.LENGTH_SHORT).show();
+
+                canDaohang = false;
+            }
+        });
+        if (duration >= 60)
+           timeText.setText(duration / 60 + " 分钟");
+        else
+            timeText.setText(duration / 60 + " 秒");
+        distanceText.setText(distance + " 米");
+//        choosePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//        WindowManager.LayoutParams lp = getWindow().getAttributes();
+//        lp.alpha = 0.5f;
+//        getWindow().setAttributes(lp);
+//        choosePop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+//
+//            @Override
+//            public void onDismiss() {
+//                WindowManager.LayoutParams lp = getWindow().getAttributes();
+//                lp.alpha = 1f;
+//                getWindow().setAttributes(lp);
+//            }
+//        });
+//        //     choosePop.setAnimationStyle(R.style.main_menu_photo_anim);
+//        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        guihuaTitlePop.showAtLocation(getWindow().getDecorView(), Gravity.TOP, 0, 0);
+        guihuaBottomPop.showAtLocation(getWindow().getDecorView(),Gravity.BOTTOM,0,0);
+
+    }
+
+
+    private void closeGuihuaPopupWindow() {
+        if (guihuaTitlePop != null && guihuaTitlePop.isShowing()){
+            guihuaTitlePop.dismiss();
+            guihuaTitlePop = null;
+        }
+        if (guihuaBottomPop != null && guihuaBottomPop.isShowing()){
+            guihuaBottomPop.dismiss();
+            guihuaBottomPop = null;
+        }
+        mBaiduMap.clear();
+        mBmb.setVisibility(View.VISIBLE);
+    }
+    private void closeChoosePopupWindow() {
+        if (choosePop != null && choosePop.isShowing()) {
+            choosePop.dismiss();
+            choosePop = null;
             mCurrentFcous = null;
         }
     }
@@ -659,6 +708,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (guihuaTitlePop != null && guihuaBottomPop != null){
+            if (guihuaTitlePop.isShowing()){
+                guihuaTitlePop.dismiss();
+                guihuaTitlePop = null;
+            }
+            if (guihuaBottomPop.isShowing()){
+                guihuaBottomPop.dismiss();
+                guihuaBottomPop = null;
+            }
+            mBaiduMap.clear();
+            mBmb.setVisibility(View.VISIBLE);
+            return false;
+        }
         //两次点击返回按钮退出程序
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
             if ((System.currentTimeMillis() - exitTime)>2000){
