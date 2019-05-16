@@ -49,6 +49,7 @@ import com.baidu.mapapi.map.InfoWindow;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
@@ -74,18 +75,20 @@ import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
 import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
 import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
 import com.baidu.mapapi.walknavi.params.WalkRouteNodeInfo;
+import com.example.map.activity.IndoorActivity;
 import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
+import com.example.map.utils.MyLatLngUtil;
 import com.example.map.utils.MyMapUtil;
-import com.necer.painter.InnerPainter;
 import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Map;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -123,6 +126,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private long exitTime=0;   //最近一次点击返回键的时间
     private boolean isFirstLoad = true; //是否为第一次进入应用
     private boolean canDaohang;
+    private boolean indoor; //是否打开室内图
     private String[] permissions = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION,};
     @Override
@@ -144,7 +148,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         //在activity执行onResume时执行mMapView. onResume ()，实现地图生命周期管理
         mMapView.onResume();
         // 地图清空
-        mBaiduMap.clear();
+        mapClear();
     }
     @Override
     protected void onPause() {
@@ -182,6 +186,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 mMapView.setZoomControlsPosition(new Point(mFindMeCardView.getLeft(),mFindMeCardView.getTop() - 350)); //设置缩放控件位置
             }
         });
+        //设置标记点击监听
+        mBaiduMap.setOnMarkerClickListener(onMarkerClickListener);
         //定位初始化
         //通过LocationClientOption设置LocationClient相关参数
         LocationClientOption option = new LocationClientOption();
@@ -261,6 +267,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     }
                 });
         mBmb.addBuilder(builder3);
+        TextOutsideCircleButton.Builder builder4 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_eat)
+                .normalText("打开/关闭室内图") .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+                        drawIndoorMark();
+                    }
+                });
+        mBmb.addBuilder(builder4);
     }
 
     @Override
@@ -291,7 +306,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mBaiduMap.animateMapStatus(update);
         update = MapStatusUpdateFactory.zoomTo(mZoomScale);
         mBaiduMap.animateMapStatus(update);
-
     }
 
 
@@ -310,7 +324,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             @Override
             public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
-                mBaiduMap.clear();
+                mapClear();
                 if (walkingRouteResult == null || walkingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
                     Log.d(TAG, "onGetWalkingRouteResult: " + walkingRouteResult.error);
                     Toast.makeText(MainActivity.this,"抱歉，未找到结果",Toast.LENGTH_SHORT).show();
@@ -462,6 +476,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void requestLocation(){
         //开启地图定位图层
         mLocationClient.start();
+    }
+
+
+    private void drawIndoorMark(){
+        if (indoor)
+            return;
+        BitmapDescriptor bitmap = BitmapDescriptorFactory
+                .fromResource(R.drawable.icon_start);
+        for (LatLng p : PositionData.indoors.values()){
+            LatLng point = p;
+            OverlayOptions option = new MarkerOptions()
+                    .position(point) //必传参数
+                    .icon(bitmap); //必传参数
+            mBaiduMap.addOverlay(option);
+        }
+
+
+
+    }
+
+    private void showIndoorPop(){
+
     }
 
 
@@ -694,7 +730,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             guihuaBottomPop.dismiss();
             guihuaBottomPop = null;
         }
-        mBaiduMap.clear();
+        mapClear();
         mBmb.setVisibility(View.VISIBLE);
     }
     private void closeChoosePopupWindow() {
@@ -706,6 +742,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
 
+    private void mapClear(){
+        indoor = false;
+        mBaiduMap.clear();
+    }
+    
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (guihuaTitlePop != null && guihuaBottomPop != null){
@@ -717,7 +758,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 guihuaBottomPop.dismiss();
                 guihuaBottomPop = null;
             }
-            mBaiduMap.clear();
+            mapClear();
             mBmb.setVisibility(View.VISIBLE);
             return false;
         }
@@ -795,7 +836,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
         //   BDLocation location = (BDLocation) msg.obj;
-            mBaiduMap.clear();
+            mapClear();
             OverlayOptions ooCircle = new CircleOptions().fillColor(0x4057FFF8)
                     .center(PositionData.teachingBuilding.get("图书馆")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(100);
             mBaiduMap.addOverlay(ooCircle);
@@ -892,7 +933,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            mBaiduMap.clear();
+            mapClear();
         }
     };
 
@@ -931,4 +972,42 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //            }).start();
         }
     }
+
+    BaiduMap.OnMarkerClickListener onMarkerClickListener = new BaiduMap.OnMarkerClickListener() {
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            LatLng position = marker.getPosition();
+            if (MyLatLngUtil.equal(PositionData.indoors.get("西3"),position))
+            {
+                startActivity(IndoorActivity.newIntent(MainActivity.this,0));
+                return true;
+            }
+            else if (MyLatLngUtil.equal(PositionData.indoors.get("西2"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,1));
+                return true;
+            }
+            else if (MyLatLngUtil.equal(PositionData.indoors.get("西1"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,2));
+                return true;
+            }
+            else if (MyLatLngUtil.equal(PositionData.indoors.get("中楼"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,3));
+                return true;
+            }
+            else if (MyLatLngUtil.equal(PositionData.indoors.get("东1"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,4));
+                return true;
+            }
+            else if (MyLatLngUtil.equal(PositionData.indoors.get("东2"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,5));
+                return true;
+            }
+            else if (MyLatLngUtil.equal(PositionData.indoors.get("东3"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,6));
+                return true;
+            }
+            return false;
+        }
+    };
+
 }

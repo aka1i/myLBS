@@ -9,6 +9,7 @@ public class PositionData {
     public static LinkedHashMap<String,LatLng> canteen = new LinkedHashMap();
     public static LinkedHashMap<String,LatLng> scenicSpot = new LinkedHashMap();
     public static LinkedHashMap<String,LatLng> others = new LinkedHashMap();
+    public static LinkedHashMap<String,LatLng> indoors = new LinkedHashMap();
     static {
         teachingBuilding.put("图书馆",new LatLng(26.06479,119.204322));
         teachingBuilding.put("西3",new LatLng(26.064384,119.202052));
@@ -41,5 +42,13 @@ public class PositionData {
         others.put("科技园",new LatLng(26.05786,119.208832));
         others.put("文体综合馆",new LatLng(26.057383,119.203504));
 
+
+        indoors.put("西3",new LatLng(26.064384,119.202052));
+        indoors.put("西2",new LatLng(26.064882,119.201983));
+        indoors.put("西1",new LatLng(26.065286,119.202043));
+        indoors.put("中楼",new LatLng(26.065985,119.201939));
+        indoors.put("东1",new LatLng(26.066262,119.202591));
+        indoors.put("东2",new LatLng(26.066953,119.203485));
+        indoors.put("东3",new LatLng(26.066683,119.204275));
     }
 }
