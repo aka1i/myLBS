@@ -9,12 +9,14 @@
            android:layout_width="match_parent"
            android:layout_height="match_parent"
            android:orientation="vertical"
-           android:background="@color/white"
+           android:background="@drawable/white_corner_pink_line_bg"
            android:layout_margin="10dp">
 
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
+                  android:background="@drawable/white_corner_pink_line_bg"
+                  android:padding="10dp"
                   android:orientation="horizontal">
                      <LinearLayout
                          android:layout_width="0dp"
@@ -43,18 +45,20 @@
                                 android:background="@drawable/unseleted_bg"
                                 android:hint="终点"/>
                      </LinearLayout>
-                     <ImageButton
+                     <ImageView
                          android:id="@+id/daohang_button"
-                         android:background="@drawable/go"
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:layout_margin="10dp"
+                         android:src="@drawable/go"
+                         android:layout_width="50dp"
+                         android:layout_height="50dp"
+                         android:layout_marginLeft="10dp"
+                         android:layout_marginRight="10dp"
                          android:layout_gravity="center_vertical"/>
               </LinearLayout>
               <ScrollView
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
-                  android:orientation="vertical">
+                  android:orientation="vertical"
+                  android:layout_marginBottom="15dp">
 
 
                      <LinearLayout
@@ -75,7 +79,9 @@
                                        android:layout_centerVertical="true"
                                        android:layout_marginLeft="10dp"
                                        android:layout_marginStart="10dp"
-                                       android:padding="8dp"
+                                       android:drawableLeft="@drawable/text_me"
+                                       android:drawablePadding="5dp"
+                                       android:gravity="center"
                                        android:text="我的位置"
                                        android:textSize="16sp" />
 
@@ -84,12 +90,15 @@
                             <RelativeLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="50dp">
+
                                    <com.example.map.customView.MyButton
                                        android:layout_width="wrap_content"
                                        android:layout_height="wrap_content"
+                                       android:layout_alignParentTop="true"
+                                       android:layout_marginTop="0dp"
                                        android:background="@drawable/red_corner_button"
-                                       android:textColor="@color/white"
-                                       android:text="我的位置"/>
+                                       android:text="我的位置"
+                                       android:textColor="@color/white" />
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -105,8 +114,11 @@
                                        android:layout_centerVertical="true"
                                        android:layout_marginLeft="10dp"
                                        android:layout_marginStart="10dp"
-                                       android:padding="8dp"
+                                       android:drawableLeft="@drawable/text_comment"
+                                       android:gravity="center"
                                        android:text="公共楼"
+                                       android:drawablePadding="5dp"
+
                                        android:textSize="16sp" />
 
 
@@ -134,8 +146,10 @@
                                        android:layout_centerVertical="true"
                                        android:layout_marginLeft="10dp"
                                        android:layout_marginStart="10dp"
-                                       android:padding="8dp"
+                                       android:drawableLeft="@drawable/text_canteen"
+                                       android:gravity="center"
                                        android:text="食堂"
+                                       android:drawablePadding="5dp"
                                        android:textSize="16sp" />
 
                             </RelativeLayout>
@@ -162,8 +176,10 @@
                                        android:layout_centerVertical="true"
                                        android:layout_marginLeft="10dp"
                                        android:layout_marginStart="10dp"
-                                       android:padding="8dp"
+                                       android:drawableLeft="@drawable/text_scenic_spot"
+                                       android:gravity="center"
                                        android:text="景点"
+                                       android:drawablePadding="5dp"
                                        android:textSize="16sp" />
 
                             </RelativeLayout>
@@ -193,6 +209,8 @@
                                        android:layout_marginStart="10dp"
                                        android:padding="8dp"
                                        android:text="其他"
+                                       android:drawableLeft="@drawable/text_others"
+                                       android:drawablePadding="5dp"
                                        android:textSize="16sp" />
 
                             </RelativeLayout>

@@ -3,12 +3,12 @@
     <!--各个输入框下面的横线-->
     <item>
         <shape>
-            <solid android:color="@color/grey_1" />
+            <solid android:color="@color/pink" />
         </shape>
     </item>
 
     <item
-        android:bottom="0.5dp">
+        android:bottom="1dp">
         <shape>
             <solid android:color="@color/white"/>
         </shape>

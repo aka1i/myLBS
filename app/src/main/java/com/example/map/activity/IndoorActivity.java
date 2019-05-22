@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.TextView;
 
 import com.example.map.R;
 import com.example.map.adapter.IndoorPicAdapter;
@@ -16,6 +17,8 @@ import com.leochuan.ScaleLayoutManager;
 public class IndoorActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     IndoorPicAdapter adapter;
+    TextView mTextView;
+    private final static String POSITION = "position";
     int[] ids;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,20 +27,23 @@ public class IndoorActivity extends AppCompatActivity {
         init();
     }
     private void init(){
-        int type = getIntent().getIntExtra("type",0);
-        if (type == 0)
+        mTextView = findViewById(R.id.position_text);
+
+        String position = getIntent().getStringExtra(POSITION);
+        mTextView.setText(position);
+        if (position.equals("西3"))
             ids = new int[]{R.drawable.west_3_1,R.drawable.west_3_2,R.drawable.west_3_3,R.drawable.west_3_4,R.drawable.west_3_5};
-        else if (type == 1)
+        else if (position.equals("西2"))
             ids = new int[]{R.drawable.west_2_1,R.drawable.west_2_2,R.drawable.west_2_3,R.drawable.west_2_4,R.drawable.west_2_5};
-        else if (type == 2)
+        else if (position.equals("西1"))
             ids = new int[]{R.drawable.west_1_1,R.drawable.west_1_2,R.drawable.west_1_3,R.drawable.west_1_4,R.drawable.west_1_5};
-        else if (type == 3)
+        else if (position.equals("中楼"))
             ids = new int[]{R.drawable.mid_1,R.drawable.mid_2,R.drawable.mid_3,R.drawable.mid_4,R.drawable.mid_5};
-        else if (type == 4)
+        else if (position.equals("东1"))
             ids = new int[]{R.drawable.east_1_1,R.drawable.east_1_2,R.drawable.east_1_3,R.drawable.east_1_4,R.drawable.east_1_5};
-        else if (type == 5)
+        else if (position.equals("东2"))
             ids = new int[]{R.drawable.east_2_1,R.drawable.east_2_2,R.drawable.east_2_3,R.drawable.east_2_4,R.drawable.east_2_5};
-        else if (type == 6)
+        else if (position.equals("东3"))
             ids = new int[]{R.drawable.east_3_1,R.drawable.east_3_2,R.drawable.east_3_3,R.drawable.east_3_4,R.drawable.east_3_5};
         recyclerView = findViewById(R.id.pic_list);
         adapter = new IndoorPicAdapter(this,ids);
@@ -50,9 +56,9 @@ public class IndoorActivity extends AppCompatActivity {
         new CenterSnapHelper().attachToRecyclerView(recyclerView);
     }
 
-    public static Intent newIntent(Context context,int type){
+    public static Intent newIntent(Context context,String position){
         Intent intent = new Intent(context,IndoorActivity.class);
-        intent.putExtra("type",type);
+        intent.putExtra(POSITION,position);
         return intent;
     }
 }

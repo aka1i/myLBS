@@ -6,7 +6,6 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.example.map.MainActivity;
 import com.example.map.R;
 
 public class WelcomeActivity extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package com.example.map;
+package com.example.map.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -32,6 +32,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -75,7 +76,9 @@ import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
 import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
 import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
 import com.baidu.mapapi.walknavi.params.WalkRouteNodeInfo;
-import com.example.map.activity.IndoorActivity;
+import com.example.map.BaseActivity;
+import com.example.map.R;
+import com.example.map.WNaviGuideActivity;
 import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
@@ -88,7 +91,6 @@ import com.nightonke.boommenu.BoomMenuButton;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Map;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -195,6 +197,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         option.setOpenGps(true); // 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
         option.setIsNeedAddress(true); //设置需要地址信息
+        option.setNeedDeviceDirect(true);
         option.setScanSpan(1000);
 //设置locationClientOption
         mLocationClient.setLocOption(option);
@@ -597,7 +600,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         View popView = View.inflate(MainActivity.this,R.layout.layout_daohang_choose_pop,null);
         final EditText startEdit = popView.findViewById(R.id.edit_text_start);
         final EditText endEdit = popView.findViewById(R.id.edit_text_end);
-        final ImageButton daohangButton = popView.findViewById(R.id.daohang_button);
+        final ImageView daohangButton = popView.findViewById(R.id.daohang_button);
         mCurrentFcous = startEdit;
         startEdit.setText("我的位置");
         daohangButton.setOnClickListener(new View.OnClickListener() {
@@ -979,31 +982,31 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             LatLng position = marker.getPosition();
             if (MyLatLngUtil.equal(PositionData.indoors.get("西3"),position))
             {
-                startActivity(IndoorActivity.newIntent(MainActivity.this,0));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"西3"));
                 return true;
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("西2"),position)){
-                startActivity(IndoorActivity.newIntent(MainActivity.this,1));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"西2"));
                 return true;
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("西1"),position)){
-                startActivity(IndoorActivity.newIntent(MainActivity.this,2));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"西1"));
                 return true;
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("中楼"),position)){
-                startActivity(IndoorActivity.newIntent(MainActivity.this,3));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"中楼"));
                 return true;
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("东1"),position)){
-                startActivity(IndoorActivity.newIntent(MainActivity.this,4));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"东1"));
                 return true;
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("东2"),position)){
-                startActivity(IndoorActivity.newIntent(MainActivity.this,5));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"东2"));
                 return true;
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("东3"),position)){
-                startActivity(IndoorActivity.newIntent(MainActivity.this,6));
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"东3"));
                 return true;
             }
             return false;
