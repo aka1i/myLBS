@@ -1,11 +1,9 @@
-package com.example.map;
+package com.example.map.activity;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import com.baidu.mapapi.walknavi.WalkNavigateHelper;

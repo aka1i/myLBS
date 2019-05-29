@@ -1,31 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="100dp"
+    android:padding="10dp">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="10dp">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="~\n~至"/>
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="~\n~至"/>-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="10dp"
                 android:orientation="vertical">
                 <TextView
+                    android:id="@+id/start_position"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"/>
+                <View
+                    android:layout_width="240dp"
+                    android:layout_height="1dp"
+                    android:background="@color/grey_1"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"/>
                 <TextView
+                    android:id="@+id/end_position"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"/>
             </LinearLayout>
         </LinearLayout>
+        <Button
+            android:id="@+id/go_to_navigation"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginRight="10dp"
+            android:gravity="center"
+            android:text="开始导航"
+            android:textColor="@color/white"
+            android:background="@drawable/red_corner_button"/>
     </android.support.v7.widget.CardView>
 
 </RelativeLayout>

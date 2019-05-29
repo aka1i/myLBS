@@ -31,7 +31,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -76,9 +75,7 @@ import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
 import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
 import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
 import com.baidu.mapapi.walknavi.params.WalkRouteNodeInfo;
-import com.example.map.BaseActivity;
 import com.example.map.R;
-import com.example.map.WNaviGuideActivity;
 import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
@@ -121,6 +118,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private TransitionSet mSet;
     OverlayManager routeOverlay = null;
 
+    String startText;//起点
+    String endText;//终点
 
     private static String TAG = "MainActivity";
     private double mCurrentX;  //当前位置纬度
@@ -202,7 +201,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //设置locationClientOption
         mLocationClient.setLocOption(option);
 
-
 //注册LocationListener监听器
         myLocationListener = new MyLocationListener();
         mLocationClient.registerLocationListener(myLocationListener);
@@ -241,7 +239,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //            mBmb.addBuilder(builder);
 //        }
 
-
         TextOutsideCircleButton.Builder builder1 = new TextOutsideCircleButton.Builder()
                 .normalImageRes(R.drawable.fad_daohang)
                 .normalText("路线规划")
@@ -272,7 +269,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mBmb.addBuilder(builder3);
         TextOutsideCircleButton.Builder builder4 = new TextOutsideCircleButton.Builder()
                 .normalImageRes(R.drawable.fad_eat)
-                .normalText("打开/关闭室内图") .listener(new OnBMClickListener() {
+                .normalText("打开室内图") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
                         drawIndoorMark();
@@ -499,14 +496,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     }
 
-    private void showIndoorPop(){
-
-    }
-
-
     private void expand() {
         //设置伸展状态时的布局
-     //   mSearch.setText("搜索简书的内容和朋友");
+
         RelativeLayout.LayoutParams LayoutParams = (RelativeLayout.LayoutParams) mSearchLayout.getLayoutParams();
         LayoutParams.width = LayoutParams.MATCH_PARENT;
         LayoutParams.setMargins(dip2px(10), dip2px(10), dip2px(10), dip2px(10));
@@ -613,6 +605,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     Toast.makeText(MainActivity.this,"起点和终点不能一样哦~~",Toast.LENGTH_SHORT).show();
                     return;
                 }
+                startText = startEdit.getText().toString();
+                endText = endEdit.getText().toString();
                 LatLng start = MyMapUtil.changeTextToLatng(startEdit.getText().toString(),mCurrentX,mCurrentY);
                 LatLng end = MyMapUtil.changeTextToLatng(endEdit.getText().toString(),mCurrentX,mCurrentY);
                 canDaohang = startEdit.getText().toString().equals("我的位置");
@@ -682,7 +676,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         TextView timeText = bottomPopView.findViewById(R.id.time);
         TextView distanceText = bottomPopView.findViewById(R.id.distance);
-        Button goToNavigation = bottomPopView.findViewById(R.id.go_to_navigation);
+
+        TextView startPotision = titlePopView.findViewById(R.id.start_position);
+        TextView endPosition = titlePopView.findViewById(R.id.end_position);
+        Button goToNavigation = titlePopView.findViewById(R.id.go_to_navigation);
 
         guihuaTitlePop = new PopupWindow(titlePopView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         guihuaBottomPop = new PopupWindow(bottomPopView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -698,11 +695,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 canDaohang = false;
             }
         });
-        if (duration >= 60)
-           timeText.setText(duration / 60 + " 分钟");
-        else
-            timeText.setText(duration / 60 + " 秒");
+   //     if (duration >= 60)
+           timeText.setText(duration / 60 + "");
+ //       else
+  //          timeText.setText(duration / 60 + " 秒");
         distanceText.setText(distance + " 米");
+        startPotision.setText("起点：" + startText);
+        endPosition.setText("终点：" + endText);
 //        choosePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 //        WindowManager.LayoutParams lp = getWindow().getAttributes();
 //        lp.alpha = 0.5f;
@@ -849,6 +848,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      //       setCircleOptions();
             //计算两点距离,单位：米
             double mDistance = DistanceUtil.getDistance(PositionData.teachingBuilding.get("图书馆"), LocationPoint);
+            Log.d(TAG, "handleMessage: " + mDistance);
             if (mDistance <= 100) {
                 //显示文字
                 setTextOption(mDestinationPoint, "开始学习叭~~", "#7ED321");
@@ -877,18 +877,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
+            int radius = 70;
             OverlayOptions ooCircle1 = new CircleOptions().fillColor(0x4057FFF8)
-                    .center(PositionData.canteen.get("紫荆园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+                    .center(PositionData.canteen.get("紫荆园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(radius);
             mBaiduMap.addOverlay(ooCircle1);
             OverlayOptions ooCircle2 = new CircleOptions().fillColor(0x4057FFF8)
-                    .center(PositionData.canteen.get("玫瑰园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+                    .center(PositionData.canteen.get("玫瑰园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(radius);
             mBaiduMap.addOverlay(ooCircle2);
             OverlayOptions ooCircle3 = new CircleOptions().fillColor(0x4057FFF8)
-                    .center(PositionData.canteen.get("京元")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+                    .center(PositionData.canteen.get("京元")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(radius);
             mBaiduMap.addOverlay(ooCircle3);
             OverlayOptions ooCircle4 = new CircleOptions().fillColor(0x4057FFF8)
-                    .center(PositionData.canteen.get("丁香园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(50);
+                    .center(PositionData.canteen.get("丁香园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(radius);
             mBaiduMap.addOverlay(ooCircle4);
 
             LatLng LocationPoint = new LatLng(mCurrentX, mCurrentY);
@@ -908,8 +908,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             //       setCircleOptions();
             //计算两点距离,单位：米
 
-
-            if (mMinDistance <= 50) {
+            Log.d(TAG, "handleMessage: " + mMinDistance);
+            if (mMinDistance <= radius) {
                 Log.d(TAG, "handleMessage: " + mDestinationPoint.latitude + "    " + mDestinationPoint.longitude);
                 //显示文字
                 setTextOption(mDestinationPoint, "要恰饭的嘛~~！！", "#7ED321");

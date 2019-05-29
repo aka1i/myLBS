@@ -1,4 +1,4 @@
-package com.example.map;
+package com.example.map.activity;
 
 import android.graphics.Color;
 import android.os.Build;
