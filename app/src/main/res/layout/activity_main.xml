@@ -72,8 +72,8 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         app:bmb_buttonEnum="textOutsideCircle"
-        app:bmb_piecePlaceEnum="piecePlace_dot_4_2"
-        app:bmb_buttonPlaceEnum="buttonPlace_sc_4_2"
+        app:bmb_piecePlaceEnum="piecePlace_dot_5_2"
+        app:bmb_buttonPlaceEnum="buttonPlace_sc_5_2"
         app:bmb_normalColor="@android:color/holo_red_light"
         />
 </RelativeLayout>

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -80,6 +81,7 @@ import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
+import com.example.map.utils.BitmapUtil;
 import com.example.map.utils.MyLatLngUtil;
 import com.example.map.utils.MyMapUtil;
 import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
@@ -149,7 +151,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         //在activity执行onResume时执行mMapView. onResume ()，实现地图生命周期管理
         mMapView.onResume();
         // 地图清空
-        mapClear();
+   //     mapClear();
     }
     @Override
     protected void onPause() {
@@ -268,7 +270,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 });
         mBmb.addBuilder(builder3);
         TextOutsideCircleButton.Builder builder4 = new TextOutsideCircleButton.Builder()
-                .normalImageRes(R.drawable.fad_eat)
+                .normalImageRes(R.drawable.fad_indoor)
                 .normalText("打开室内图") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
@@ -276,6 +278,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     }
                 });
         mBmb.addBuilder(builder4);
+        TextOutsideCircleButton.Builder builder5 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_me)
+                .normalText("名片") .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+                        drawIndoorMark();
+                    }
+                });
+        mBmb.addBuilder(builder5);
     }
 
     @Override
@@ -482,13 +493,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void drawIndoorMark(){
         if (indoor)
             return;
-        BitmapDescriptor bitmap = BitmapDescriptorFactory
-                .fromResource(R.drawable.icon_start);
+//        BitmapDescriptor bitmap = BitmapDescriptorFactory.fromBitmap(
+//                BitmapUtil.scaleBitmap(
+//                        BitmapFactory.decodeResource(getResources(), R.mipmap.jiaoxuelou),200,200));
+
+        BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.mipmap.jiaoxuelou);
         for (LatLng p : PositionData.indoors.values()){
             LatLng point = p;
             OverlayOptions option = new MarkerOptions()
                     .position(point) //必传参数
                     .icon(bitmap); //必传参数
+ //           MarkerOptions ooD = new MarkerOptions().position(p).icon(bitmap);
             mBaiduMap.addOverlay(option);
         }
 
@@ -919,7 +934,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_yellow));
             } else {
                 setTextOption(LocationPoint, "您不在食堂范围之内", "#FF6C6C");
-                setMarkerOptions(mDestinationPoint, R.mipmap.library_icon);
+                setMarkerOptions(mDestinationPoint, R.mipmap.restaurant_icon);
             }
 
             // mDistance_tv.setText("距离目的地：" + mDistance + "米");

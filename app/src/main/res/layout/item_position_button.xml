@@ -6,8 +6,8 @@
         android:id="@+id/position_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/red_corner_button"
+        android:background="@drawable/pink_corner_button"
         android:layout_margin="2dp"
-        android:textColor="@color/white"
+        android:textColor="@color/gray"
         android:clickable="true"/>
 </LinearLayout>

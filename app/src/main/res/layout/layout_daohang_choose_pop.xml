@@ -89,6 +89,7 @@
                             </RelativeLayout>
                             <RelativeLayout
                                 android:layout_width="match_parent"
+                                android:layout_marginTop="5dp"
                                 android:layout_height="50dp">
 
                                    <com.example.map.customView.MyButton
@@ -118,7 +119,7 @@
                                        android:gravity="center"
                                        android:text="公共楼"
                                        android:drawablePadding="5dp"
-
+                                       android:layout_marginBottom="5dp"
                                        android:textSize="16sp" />
 
 
@@ -150,6 +151,7 @@
                                        android:gravity="center"
                                        android:text="食堂"
                                        android:drawablePadding="5dp"
+                                       android:layout_marginBottom="5dp"
                                        android:textSize="16sp" />
 
                             </RelativeLayout>
@@ -180,6 +182,7 @@
                                        android:gravity="center"
                                        android:text="景点"
                                        android:drawablePadding="5dp"
+                                       android:layout_marginBottom="5dp"
                                        android:textSize="16sp" />
 
                             </RelativeLayout>
@@ -198,7 +201,7 @@
                                 android:id="@+id/daohang_position_r4"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
+
                                 android:background="@drawable/bottom_line_rl">
 
                                    <TextView
