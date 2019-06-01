@@ -56,4 +56,10 @@ dependencies {
     implementation 'rouchuan.viewpagerlayoutmanager:viewpagerlayoutmanager:2.0.21'
     //看图控件
     implementation 'com.github.SherlockGougou:BigImageViewPager:v4_2.1.0'
+
+
+    // LeanCloud 基础包
+    implementation('cn.leancloud.android:avoscloud-sdk:4.7.9')
+    //圆头像
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
 }

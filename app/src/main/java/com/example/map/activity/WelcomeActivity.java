@@ -6,6 +6,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.avos.avoscloud.AVUser;
 import com.example.map.R;
 
 public class WelcomeActivity extends AppCompatActivity {
@@ -21,8 +22,13 @@ public class WelcomeActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-            startActivity(intent);
+            if (AVUser.getCurrentUser() == null){
+                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }else {
+                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+                startActivity(intent);
+            }
             finish();
         }
     };

@@ -2,14 +2,18 @@ package com.example.map.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -38,6 +42,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVFile;
+import com.avos.avoscloud.AVUser;
+import com.avos.avoscloud.SaveCallback;
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClient;
@@ -76,7 +84,10 @@ import com.baidu.mapapi.walknavi.adapter.IWRoutePlanListener;
 import com.baidu.mapapi.walknavi.model.WalkRoutePlanError;
 import com.baidu.mapapi.walknavi.params.WalkNaviLaunchParam;
 import com.baidu.mapapi.walknavi.params.WalkRouteNodeInfo;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.map.R;
+import com.example.map.SPStr;
 import com.example.map.adapter.DaohangAdapter;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
@@ -84,10 +95,12 @@ import com.example.map.overlayutil.WalkingRouteOverlay;
 import com.example.map.utils.BitmapUtil;
 import com.example.map.utils.MyLatLngUtil;
 import com.example.map.utils.MyMapUtil;
+import com.example.map.utils.OpenAlbumUtil;
 import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
 
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -97,6 +110,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private PopupWindow choosePop;
     private PopupWindow guihuaTitlePop;
     private PopupWindow guihuaBottomPop;
+    private PopupWindow mePop;
+    private PopupWindow albumPop;
     private InfoWindow mInfoWindow; //签到信息框
     private Button mFindMeButton;
     private EditText mSearch;
@@ -122,7 +137,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     String startText;//起点
     String endText;//终点
-
+    private SharedPreferences sp;
     private static String TAG = "MainActivity";
     private double mCurrentX;  //当前位置纬度
     private double mCurrentY;  //当前位置经度
@@ -130,6 +145,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private boolean isFirstLoad = true; //是否为第一次进入应用
     private boolean canDaohang;
     private boolean indoor; //是否打开室内图
+    private static final int PHOTO_FROM_GALLERY = 1;
+    private static final int PHOTO_FROM_CAMERA = 2;
+    private ProgressDialog progressDialog;
+    ImageView headImg;//头像
+    String path;//图片路径
     private String[] permissions = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION,};
     @Override
@@ -172,6 +192,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void init(){
+        sp = getSharedPreferences(SPStr.USER_INFO,MODE_PRIVATE);;
         mFindMeButton = findViewById(R.id.find_me_btn);
         mSearch = findViewById(R.id.edittxt_search);
         mSearchLayout = findViewById(R.id.ll_search);
@@ -283,7 +304,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .normalText("名片") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
-                        drawIndoorMark();
+                        showMePop();
                     }
                 });
         mBmb.addBuilder(builder5);
@@ -737,6 +758,113 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     }
 
+    private void showMePop(){
+        mBmb.setVisibility(View.GONE);
+        View popView = View.inflate(MainActivity.this,R.layout.layout_me_pop,null);
+
+        headImg = popView.findViewById(R.id.head_img);
+        RequestOptions options = new RequestOptions();
+        options.error(R.drawable.default_head);
+        Glide.with(this).applyDefaultRequestOptions(options).load(sp.getString(SPStr.HEAD_IMG,"")).into(headImg);
+        Button logoutButton = popView.findViewById(R.id.logout_button);
+        TextView userNmaeText = popView.findViewById(R.id.user_name);
+        userNmaeText.setText("用户名：" + sp.getString(SPStr.USER_NAME,""));
+        mePop = new PopupWindow(popView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        mePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        mePop.setOutsideTouchable(true);
+        mePop.setFocusable(true);
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.alpha = 0.5f;
+        getWindow().setAttributes(lp);
+        headImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAlbumPop();
+            }
+        });
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AVUser.logOut();// 清除缓存用户对象
+
+                SharedPreferences.Editor editor = sp.edit();
+                editor.clear();
+                editor.apply();
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+        mePop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.alpha = 1f;
+                getWindow().setAttributes(lp);
+                mePop = null;
+                headImg = null;
+                mBmb.setVisibility(View.VISIBLE);
+            }
+        });
+//        //     choosePop.setAnimationStyle(R.style.main_menu_photo_anim);
+//        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        mePop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
+    }
+
+    private void showAlbumPop(){
+        View bottomView = View.inflate(this, R.layout.bottom_dialog, null);
+        TextView mAlbum = bottomView.findViewById(R.id.tv_album);
+        TextView mCancel = bottomView.findViewById(R.id.tv_cancel);
+        mAlbum.setText("相册");
+        albumPop = new PopupWindow(bottomView, -1, -2);
+        albumPop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        albumPop.setOutsideTouchable(true);
+        albumPop.setFocusable(true);
+        WindowManager.LayoutParams lp = this.getWindow().getAttributes();
+        lp.alpha = 0.5f;
+        this.getWindow().setAttributes(lp);
+        albumPop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                albumPop = null;
+            }
+        });
+        albumPop.setAnimationStyle(R.style.main_menu_photo_anim);
+        albumPop.showAtLocation(getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
+
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                switch (view.getId()) {
+                    case R.id.tv_album:
+                        if(ContextCompat.checkSelfPermission(MainActivity.this,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE)!=
+                                PackageManager.PERMISSION_GRANTED){
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+                        }
+                        else {
+                            OpenAlbumUtil.openAlbum(MainActivity.this);
+                        }
+                        break;
+
+                    case R.id.tv_cancel:
+                        //取消
+                        //closePopupWindow();
+                        break;
+                }
+                if (albumPop != null && albumPop.isShowing()) {
+                    albumPop.dismiss();
+                    albumPop = null;
+                }
+            }
+        };
+        mAlbum.setOnClickListener(clickListener);
+        mCancel.setOnClickListener(clickListener);
+    }
 
     private void closeGuihuaPopupWindow() {
         if (guihuaTitlePop != null && guihuaTitlePop.isShowing()){
@@ -779,6 +907,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             mBmb.setVisibility(View.VISIBLE);
             return false;
         }
+
         //两次点击返回按钮退出程序
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
             if ((System.currentTimeMillis() - exitTime)>2000){
@@ -1027,5 +1156,82 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             return false;
         }
     };
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //第一层switch
+        switch (requestCode) {
+            case PHOTO_FROM_GALLERY:
+                //第二层switch
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        progressDialog = new ProgressDialog(MainActivity.this);
+                        progressDialog.setCancelable(false);
+                        progressDialog.setMessage("正在修改信息...");
+                        progressDialog.show();
+                        if (Build.VERSION.SDK_INT >= 19) {
+                            path = OpenAlbumUtil.handleImageOnKitKat(this,data);
+                        } else {
+                            path = OpenAlbumUtil.handleImageBeforeKitKat(this,data);
+                        }
+                        if (data != null) {
+                            AVUser avUser = AVUser.getCurrentUser();
+                            if (path != null){
+                                try {
+                                    final AVFile file = AVFile.withAbsoluteLocalPath("LeanCloud.png", path);
+                                    avUser.put("pic", file);
+                                    avUser.saveInBackground(new SaveCallback() {
+                                        @Override
+                                        public void done(AVException e) {
+                                            if (e == null) {
+                                                Uri uri = data.getData();
+                                                headImg.setImageURI(uri);
+                                                Toast.makeText(MainActivity.this,"头像修改成功",Toast.LENGTH_SHORT).show();
+                                                SharedPreferences.Editor editor = sp.edit();
+                                                editor.putString(SPStr.HEAD_IMG,file.getUrl());
+                                                editor.apply();
 
+                                            } else {
+                                                Toast.makeText(MainActivity.this,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                                            }
+                                            progressDialog.cancel();
+                                        }
+                                    });
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(this,"找不到图片",Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+//                            mPic.setVisibility(View.VISIBLE);
+//                            imageView.setVisibility(View.GONE);
+                        }
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        break;
+                }
+                break;
+//            case PHOTO_FROM_CAMERA:
+//                if (resultCode == Activity.RESULT_OK) {
+//                    SharedPreferences  sp = Activity.getSharedPreferences("loginUser", Context.MODE_PRIVATE);
+//                    String user = sp.getString(("uri"), "");
+//                    Uri uri = Uri.parse(user);
+//                    updateDCIM(uri);
+//                    try {
+//                        //把URI转换为Bitmap，并将bitmap压缩，防止OOM(out of memory)
+//                        Bitmap bitmap = ImageTools.getBitmapFromUri(uri, this);
+//                        imageView.setImageBitmap(bitmap);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    removeCache("uri");
+//                } else {
+//                    Log.e("result", "is not ok" + resultCode);
+//                }
+//                break;
+            default:
+                break;
+        }
+    }
 }
