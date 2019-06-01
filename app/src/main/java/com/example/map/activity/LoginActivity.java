@@ -63,7 +63,6 @@ public class LoginActivity extends AppCompatActivity {
                                 editor = getSharedPreferences("user_info", MODE_PRIVATE).edit();
                                 editor.putString("user_id",avUser.getObjectId());
                                 editor.putString("user_name",username);
-                                Log.d("21312312313", "done: " +avUser.getAVFile("pic").getUrl() );
                                 editor.putString(SPStr.HEAD_IMG,avUser.getAVFile("pic").getUrl());
                                 editor.commit();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));

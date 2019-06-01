@@ -699,7 +699,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 getWindow().setAttributes(lp);
             }
         });
-   //     choosePop.setAnimationStyle(R.style.main_menu_photo_anim);
+        choosePop.setAnimationStyle(R.style.left_to_right_anim);
         choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         choosePop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
 
@@ -751,7 +751,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //                getWindow().setAttributes(lp);
 //            }
 //        });
-//        //     choosePop.setAnimationStyle(R.style.main_menu_photo_anim);
+        guihuaBottomPop.setAnimationStyle(R.style.main_menu_photo_anim);
+        guihuaTitlePop.setAnimationStyle(R.style.top_in_top_out_anim);
 //        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         guihuaTitlePop.showAtLocation(getWindow().getDecorView(), Gravity.TOP, 0, 0);
         guihuaBottomPop.showAtLocation(getWindow().getDecorView(),Gravity.BOTTOM,0,0);
@@ -759,7 +760,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void showMePop(){
-        mBmb.setVisibility(View.GONE);
         View popView = View.inflate(MainActivity.this,R.layout.layout_me_pop,null);
 
         headImg = popView.findViewById(R.id.head_img);
@@ -804,10 +804,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 getWindow().setAttributes(lp);
                 mePop = null;
                 headImg = null;
-                mBmb.setVisibility(View.VISIBLE);
             }
         });
-//        //     choosePop.setAnimationStyle(R.style.main_menu_photo_anim);
+        mePop.setAnimationStyle(R.style.left_to_right_anim);
 //        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         mePop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
     }

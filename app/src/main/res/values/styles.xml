@@ -17,7 +17,18 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
     <style name="main_menu_photo_anim">
-        <item name="android:windowEnterAnimation">@anim/photo_dialog_in_anim</item>
-        <item name="android:windowExitAnimation">@anim/photo_dialog_out_anim</item>
+        <item name="android:windowEnterAnimation">@anim/bottom_to_top__in_anim</item>
+        <item name="android:windowExitAnimation">@anim/top_to_bottom_out_anim</item>
+    </style>
+
+    <style name="left_to_right_anim">
+        <item name="android:windowEnterAnimation">@anim/left_to_right_in_anim</item>
+        <item name="android:windowExitAnimation">@anim/left_to_right_out_anim</item>
+    </style>
+
+
+    <style name="top_in_top_out_anim">
+        <item name="android:windowEnterAnimation">@anim/top_to_bottom_in_anim</item>
+        <item name="android:windowExitAnimation">@anim/bottom_to_top_out_anim</item>
     </style>
 </resources>
