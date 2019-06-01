@@ -299,6 +299,27 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     }
                 });
         mBmb.addBuilder(builder4);
+
+        TextOutsideCircleButton.Builder builder6 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_start)
+                .normalText("记录回忆") .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+
+                    }
+                });
+        mBmb.addBuilder(builder6);
+
+        TextOutsideCircleButton.Builder builder7 = new TextOutsideCircleButton.Builder()
+                .normalImageRes(R.drawable.fad_note)
+                .normalText("查看回忆") .listener(new OnBMClickListener() {
+                    @Override
+                    public void onBoomButtonClick(int index) {
+
+                    }
+                });
+        mBmb.addBuilder(builder7);
+
         TextOutsideCircleButton.Builder builder5 = new TextOutsideCircleButton.Builder()
                 .normalImageRes(R.drawable.fad_me)
                 .normalText("名片") .listener(new OnBMClickListener() {
