@@ -55,6 +55,7 @@ import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.CircleOptions;
 import com.baidu.mapapi.map.InfoWindow;
+import com.baidu.mapapi.map.MapPoi;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
@@ -111,6 +112,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private PopupWindow guihuaTitlePop;
     private PopupWindow guihuaBottomPop;
     private PopupWindow mePop;
+    private PopupWindow selectNotePositionPop;
     private PopupWindow albumPop;
     private InfoWindow mInfoWindow; //签到信息框
     private Button mFindMeButton;
@@ -145,6 +147,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private boolean isFirstLoad = true; //是否为第一次进入应用
     private boolean canDaohang;
     private boolean indoor; //是否打开室内图
+    private boolean isNote;//是否选择回忆地点
+    private LatLng notePosition;
     private static final int PHOTO_FROM_GALLERY = 1;
     private static final int PHOTO_FROM_CAMERA = 2;
     private ProgressDialog progressDialog;
@@ -212,6 +216,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         });
         //设置标记点击监听
         mBaiduMap.setOnMarkerClickListener(onMarkerClickListener);
+        mBaiduMap.setOnMapClickListener(new BaiduMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (isNote){
+                    mBaiduMap.clear();
+                    notePosition = latLng;
+                    BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.start);
+                    OverlayOptions option = new MarkerOptions()
+                            .position(latLng) //必传参数
+                            .icon(bitmap); //必传参数
+                    mBaiduMap.addOverlay(option);
+                }
+            }
+
+            @Override
+            public boolean onMapPoiClick(MapPoi mapPoi) {
+                return false;
+            }
+        });
         //定位初始化
         //通过LocationClientOption设置LocationClient相关参数
         LocationClientOption option = new LocationClientOption();
@@ -305,7 +328,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .normalText("记录回忆") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
-
+                        showSelectNotePositionPop();
                     }
                 });
         mBmb.addBuilder(builder6);
@@ -315,7 +338,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .normalText("查看回忆") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
-
+                        Intent intent = NoteListActivity.newIntent(MainActivity.this);
+                        startActivity(intent);
                     }
                 });
         mBmb.addBuilder(builder7);
@@ -752,29 +776,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 canDaohang = false;
             }
         });
-   //     if (duration >= 60)
-           timeText.setText(duration / 60 + "");
- //       else
-  //          timeText.setText(duration / 60 + " 秒");
+       timeText.setText(duration / 60 + "");
         distanceText.setText(distance + " 米");
         startPotision.setText("起点：" + startText);
         endPosition.setText("终点：" + endText);
-//        choosePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-//        WindowManager.LayoutParams lp = getWindow().getAttributes();
-//        lp.alpha = 0.5f;
-//        getWindow().setAttributes(lp);
-//        choosePop.setOnDismissListener(new PopupWindow.OnDismissListener() {
-//
-//            @Override
-//            public void onDismiss() {
-//                WindowManager.LayoutParams lp = getWindow().getAttributes();
-//                lp.alpha = 1f;
-//                getWindow().setAttributes(lp);
-//            }
-//        });
         guihuaBottomPop.setAnimationStyle(R.style.main_menu_photo_anim);
         guihuaTitlePop.setAnimationStyle(R.style.top_in_top_out_anim);
-//        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         guihuaTitlePop.showAtLocation(getWindow().getDecorView(), Gravity.TOP, 0, 0);
         guihuaBottomPop.showAtLocation(getWindow().getDecorView(),Gravity.BOTTOM,0,0);
 
@@ -830,6 +837,43 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mePop.setAnimationStyle(R.style.left_to_right_anim);
 //        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         mePop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
+    }
+
+
+    private void showSelectNotePositionPop(){
+        isNote = true;
+        View popView = View.inflate(MainActivity.this,R.layout.layout_select_note_position_pop,null);
+
+
+        Button applyButton = popView.findViewById(R.id.apply);
+
+        selectNotePositionPop = new PopupWindow(popView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        applyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (notePosition != null)
+                {
+                    Intent intent = EditNoteActivity.newIntent(MainActivity.this,notePosition);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(MainActivity.this,"还没选择回忆位置~~~",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        selectNotePositionPop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                mBaiduMap.clear();
+                selectNotePositionPop = null;
+                notePosition = null;
+                isNote = false;
+            }
+        });
+        selectNotePositionPop.setAnimationStyle(R.style.main_menu_photo_anim);
+//        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        selectNotePositionPop.showAtLocation(getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
     }
 
     private void showAlbumPop(){
@@ -925,6 +969,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
             mapClear();
             mBmb.setVisibility(View.VISIBLE);
+            return false;
+        }
+        if (selectNotePositionPop != null){
+            if (selectNotePositionPop.isShowing()){
+                selectNotePositionPop.dismiss();
+            }
             return false;
         }
 

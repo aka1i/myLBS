@@ -29,7 +29,7 @@ android {
         flatDir {
             dirs 'libs'
         }
-        maven { url "https://jitpack.io"}
+        maven { url "https://jitpack.io" }
     }
 }
 

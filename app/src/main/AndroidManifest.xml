@@ -22,10 +22,13 @@
         android:roundIcon="@mipmap/tubiao"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.ForgotPasswordActivity"/>
-        <activity android:name=".activity.LoginActivity"/>
-        <activity android:name=".activity.RegisterActivity"/>
-        <activity android:name=".activity.IndoorActivity"></activity>
+        <activity android:name=".activity.NoteDetailActivity"></activity>
+        <activity android:name=".activity.NoteListActivity" />
+        <activity android:name=".activity.EditNoteActivity" />
+        <activity android:name=".activity.ForgotPasswordActivity" />
+        <activity android:name=".activity.LoginActivity" />
+        <activity android:name=".activity.RegisterActivity" />
+        <activity android:name=".activity.IndoorActivity" />
         <activity android:name=".activity.WNaviGuideActivity" />
         <activity android:name=".activity.WelcomeActivity">
             <intent-filter>
