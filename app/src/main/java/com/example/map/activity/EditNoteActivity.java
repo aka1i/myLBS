@@ -1,14 +1,16 @@
 package com.example.map.activity;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -16,7 +18,6 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,19 +31,16 @@ import android.widget.Toast;
 
 import com.avos.avoscloud.AVUser;
 import com.baidu.mapapi.model.LatLng;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.map.R;
-import com.example.map.SPStr;
 import com.example.map.adapter.GridImageAdapter;
+import com.example.map.bean.NoteBean;
+import com.example.map.bean.NoteLab;
 import com.example.map.utils.BitmapUtil;
 import com.example.map.utils.OpenAlbumUtil;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import cc.shinichi.sherlockutillibrary.utility.image.ImageUtil;
 
 public class EditNoteActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String LONGITUDE = "longitude";
@@ -53,8 +51,13 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
     private EditText mTitleText;
     private EditText mSummaryText;
     private ImageView emojiImg;
+    private Button mApplyButton;
     private PopupWindow albumPop;
     private PopupWindow emojiPop;
+    private double longitude;
+    private double latitude;
+    private ProgressDialog progressDialog;
+    private int emojiId = R.drawable.emoji_1;
     private static final int PHOTO_FROM_GALLERY = 1;
     private static final int PHOTO_FROM_CAMERA = 2;
     @Override
@@ -65,6 +68,9 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void init(){
+        Intent intent = getIntent();
+        latitude = intent.getDoubleExtra(LATITUDE,0);
+        longitude = intent.getDoubleExtra(LONGITUDE,0);
         Toolbar toolbar = findViewById(R.id.setting_title);
         toolbar.setNavigationIcon(R.drawable.back_white);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -76,6 +82,7 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         mTitleText = findViewById(R.id.edit_note_tile);
         mSummaryText = findViewById(R.id.edit_note_summary);
         emojiImg = findViewById(R.id.emoji_img);
+        mApplyButton = findViewById(R.id.apply_button);
         RecyclerView recyclerView = findViewById(R.id.edit_note_pics);
         recyclerView.setLayoutManager(new GridLayoutManager(this,3));
         adapter = new GridImageAdapter(this,onAddPicClickListener);
@@ -85,6 +92,7 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         recyclerView.setAdapter(adapter);
         emojiImg.setBackground(getDrawable(R.drawable.emoji_1));
         emojiImg.setOnClickListener(this);
+        mApplyButton.setOnClickListener(this);
     }
     private GridImageAdapter.onAddPicClickListener onAddPicClickListener =
             new GridImageAdapter.onAddPicClickListener() {
@@ -104,6 +112,25 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         switch (v.getId()){
             case R.id.emoji_img:
                 showSelectEmojiPop();
+                break;
+            case R.id.apply_button:
+                progressDialog = new ProgressDialog(this);
+                progressDialog.setCancelable(false);
+                progressDialog.setMessage("正在刻入您的记忆...");
+                progressDialog.show();
+                NoteBean noteBean = new NoteBean(
+                        "",
+                        mTitleText.getText().toString(),
+                        mSummaryText.getText().toString(),
+                        longitude,
+                        latitude,
+                        new Date().getTime(),
+                        emojiId,
+                        true,
+                        selectList,
+                        AVUser.getCurrentUser()
+                        );
+                NoteLab.get(this).addNote(noteBean,handler);
                 break;
         }
     }
@@ -127,6 +154,7 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         adapter.setOnItemClickListener(new GridImageAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, View v) {
+                emojiId = emojiIds[position];
                 emojiImg.setBackground(getDrawable(emojiIds[position]));
                 emojiPop.dismiss();
             }
@@ -287,4 +315,21 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         intent.putExtra(LATITUDE,latLng.latitude);
         return intent;
     }
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (progressDialog!=null)
+            progressDialog.cancel();
+            switch (msg.what){
+                case 0:
+                    finish();
+                    Toast.makeText(EditNoteActivity.this,"刻入成功",Toast.LENGTH_SHORT).show();
+                    break;
+                case -999:
+                    Toast.makeText(EditNoteActivity.this,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
 }

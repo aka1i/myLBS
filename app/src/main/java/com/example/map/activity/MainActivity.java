@@ -842,6 +842,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private void showSelectNotePositionPop(){
         isNote = true;
+        mBmb.setVisibility(View.INVISIBLE);
         View popView = View.inflate(MainActivity.this,R.layout.layout_select_note_position_pop,null);
 
 
@@ -866,6 +867,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onDismiss() {
                 mBaiduMap.clear();
+                mBmb.setVisibility(View.VISIBLE);
                 selectNotePositionPop = null;
                 notePosition = null;
                 isNote = false;

@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putString(SPStr.HEAD_IMG,avUser.getAVFile("pic").getUrl());
                                 editor.commit();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                Toast.makeText(LoginActivity.this, "登入成功", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, "脑电波接入成功~~~", Toast.LENGTH_SHORT).show();
                                 finish();
                             } else {
                                 Toast.makeText(LoginActivity.this, "登入失败（可能账户名或密码错误）", Toast.LENGTH_SHORT).show();

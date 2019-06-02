@@ -17,6 +17,8 @@ import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.example.map.activity.MainActivity;
 
+import org.json.JSONArray;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ public class NoteLab {
     private static List<NoteBean> mOthersEvents = new ArrayList<>();
     private static Context mContext;
     private static String TAG = "NoteLab";
+    private boolean hasSYN = false; //是否同步成功过
+    int time = 0;//图片上次数
     public NoteLab(Context context){
         mContext = context.getApplicationContext();
     }
@@ -41,10 +45,17 @@ public class NoteLab {
     }
 
 
-    public static List<NoteBean> getmNotes() {
+    public List<NoteBean> getmNotes() {
         return mNotes;
     }
 
+    public boolean isHasSYN() {
+        return hasSYN;
+    }
+
+    public void setHasSYN(boolean hasSYN) {
+        this.hasSYN = hasSYN;
+    }
 
     public void getMymNotesFormNet(final Handler handler) {
         mNotes.clear();
@@ -56,11 +67,13 @@ public class NoteLab {
                 if (e == null) {
                     for (int i = 0; i < list.size(); i++) {
                         AVObject avObject = list.get(i);
-                        List<AVFile> imgs = avObject.getList("imgUrl");
-                        List<String> imgUrl = new ArrayList<>();
-                        for (AVFile img : imgs){
-                            imgUrl.add(img.getUrl());
-                        }
+
+                        List<String> imgUrl = avObject.getList("imgUrl");
+//                        for ( object : imgs){
+//                            AVFile file = new AVFile(object);
+//                            imgUrl.add(img.getUrl());
+//                        }
+
                         NoteBean noteBean = new NoteBean(avObject.getObjectId(),
                                 avObject.getString("title"),
                                 avObject.getString("detail"),
@@ -80,6 +93,7 @@ public class NoteLab {
                         }
                     });
                     handler.sendEmptyMessage(0);
+                    hasSYN = true;
                 }
             }
 
@@ -87,12 +101,9 @@ public class NoteLab {
 
     }
 
-    public static void addEvent(final NoteBean note, final Handler handler){
-        final ProgressDialog progressDialog = new ProgressDialog(mContext);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("请稍后...");
-        progressDialog.show();
-        AVObject noteSave = new AVObject("Note");// 构建对象
+    public void addNote(final NoteBean note, final Handler handler){
+        time = 0;
+        final AVObject noteSave = new AVObject("Note");// 构建对象
         noteSave.put("title", note.getTitle());
         noteSave.put("detail", note.getDetail());
         noteSave.put("longitude", note.getLongitude());
@@ -101,37 +112,44 @@ public class NoteLab {
         noteSave.put("emojiId",note.getEmojiId());
         noteSave.put("hasPosition", note.isHasPosition());
         noteSave.put("owner",note.getOwner());
-        List<AVFile> files = new ArrayList<>();
+        final List<String> uploadUrl = new ArrayList<>();
         for (String url : note.getImgUrl()){
-            AVFile file = null;
             try {
-                file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
-                files.add(file);
+                final AVFile file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
+                file.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(AVException e) {
+                        if (e == null){
+                            uploadUrl.add(file.getUrl());
+                            time++;
+                            if (time == note.getImgUrl().size()){
+                                noteSave.put("imgUrl",uploadUrl);
+
+                                noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+                                    @Override
+                                    public void done(AVException e) {
+                                        if (e == null) {
+                                            mNotes.add(0,note);
+                                            handler.sendEmptyMessage(0);
+                                            // 存储成功
+                                            // 保存成功之后，objectId 会自动从服务端加载到本地
+                                        } else {
+                                            handler.sendEmptyMessage(-999);
+                                            // 失败的话，请检查网络环境以及 SDK 配置是否正确
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 Toast.makeText(mContext,"找不到图片",Toast.LENGTH_SHORT).show();
             }
         }
-        noteSave.put("imgUrl",files);
-
-        noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
-            @Override
-            public void done(AVException e) {
-                if (e == null) {
-                    mNotes.add(note);
-                    handler.sendEmptyMessage(0);
-                    Toast.makeText(mContext,"发表成功",Toast.LENGTH_SHORT).show();
-                    // 存储成功
-                    // 保存成功之后，objectId 会自动从服务端加载到本地
-                } else {
-                    Toast.makeText(mContext,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
-                    // 失败的话，请检查网络环境以及 SDK 配置是否正确
-                }
-                progressDialog.cancel();
-            }
-        });
     }
-    public static void deleteEvent(final NoteBean note, final Handler handler){
+    public void deleteEvent(final NoteBean note, final Handler handler){
         final ProgressDialog progressDialog = new ProgressDialog(mContext);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("请稍后...");
@@ -158,7 +176,7 @@ public class NoteLab {
         });
     }
 
-    public static void updateEvent(final NoteBean note, final Handler handler,final String path){
+    public void updateEvent(final NoteBean note, final Handler handler,final String path){
         final ProgressDialog progressDialog = new ProgressDialog(mContext);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("请稍后...");
@@ -176,18 +194,25 @@ public class NoteLab {
                     noteSave.put("emojiId",note.getEmojiId());
                     noteSave.put("hasPosition", note.isHasPosition());// 设置优先级
                     noteSave.put("owner",note.getOwner());
-                    List<AVFile> files = new ArrayList<>();
+                    List<String> uploadImgUrl = new ArrayList<>();
                     for (String url : note.getImgUrl()){
                         AVFile file = null;
                         try {
                             file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
-                            files.add(file);
+                            file.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null){
+                                        time++;
+                                    }
+                                }
+                            });
                         } catch (FileNotFoundException f) {
                             f.printStackTrace();
                             Toast.makeText(mContext,"找不到图片",Toast.LENGTH_SHORT).show();
                         }
                     }
-                    noteSave.put("imgUrl",files);
+              //      noteSave.put("imgUrl",files);
 
                     noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
                         @Override

@@ -50,7 +50,7 @@ public class NoteAdapter extends RecyclerView.Adapter {
         return notes.size();
     }
 
-    public void setEvents(List<NoteBean> notes) {
+    public void setNotes(List<NoteBean> notes) {
         this.notes = notes;
     }
 
@@ -75,6 +75,7 @@ public class NoteAdapter extends RecyclerView.Adapter {
             this.note = note;
             titleText.setText(note.getTitle());
             summaryText.setText(note.getDetail());
+            timeText.setText("发表于：" + dateFormat.format(note.getTime()));
             Uri uri = Uri.parse("android.resource://" + context.getPackageName() + "/" + note.getEmojiId());
             RequestOptions options = new RequestOptions();
             Glide.with(context).applyDefaultRequestOptions(options).load(uri).into(moodImg);
