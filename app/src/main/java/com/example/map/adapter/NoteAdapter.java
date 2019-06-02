@@ -19,18 +19,25 @@ import com.example.map.R;
 import com.example.map.SPStr;
 import com.example.map.activity.NoteDetailActivity;
 import com.example.map.bean.NoteBean;
+import com.example.map.utils.ImgDetailUtil;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import cc.shinichi.sherlockutillibrary.utility.image.ImageUtil;
 
 public class NoteAdapter extends RecyclerView.Adapter {
     private List<NoteBean> notes;
     private Context context;
+
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public NoteAdapter(List<NoteBean> notes, Context context) {
         this.notes = notes;
         this.context = context;
+
     }
 
     @NonNull
@@ -71,15 +78,21 @@ public class NoteAdapter extends RecyclerView.Adapter {
             recyclerView = itemView.findViewById(R.id.note_pics);
         }
 
-        void bind(NoteBean note){
+        void bind(final NoteBean note){
             this.note = note;
             titleText.setText(note.getTitle());
             summaryText.setText(note.getDetail());
-            timeText.setText("发表于：" + dateFormat.format(note.getTime()));
+            timeText.setText("刻入于：" + dateFormat.format(note.getTime()));
             Uri uri = Uri.parse("android.resource://" + context.getPackageName() + "/" + note.getEmojiId());
             RequestOptions options = new RequestOptions();
             Glide.with(context).applyDefaultRequestOptions(options).load(uri).into(moodImg);
             EasyImgAdapter easyImgAdapter = new EasyImgAdapter(note.getImgUrl(),context);
+            easyImgAdapter.setListener(new EasyImgAdapter.ClickListener() {
+                @Override
+                public void onclick(int position) {
+                    ImgDetailUtil.startImgDetail(context,note.getImgUrl(),position);
+                }
+            });
             recyclerView.setLayoutManager(new GridLayoutManager(context,3));
             recyclerView.setAdapter(easyImgAdapter);
         }

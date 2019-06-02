@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVFile;
 import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.LogInCallback;
 import com.example.map.R;
@@ -63,7 +64,9 @@ public class LoginActivity extends AppCompatActivity {
                                 editor = getSharedPreferences("user_info", MODE_PRIVATE).edit();
                                 editor.putString("user_id",avUser.getObjectId());
                                 editor.putString("user_name",username);
-                                editor.putString(SPStr.HEAD_IMG,avUser.getAVFile("pic").getUrl());
+                                AVFile headImg = avUser.getAVFile("pic");
+                                if (headImg != null)
+                                   editor.putString(SPStr.HEAD_IMG,headImg.getUrl());
                                 editor.commit();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                 Toast.makeText(LoginActivity.this, "脑电波接入成功~~~", Toast.LENGTH_SHORT).show();

@@ -57,6 +57,10 @@ public class NoteLab {
         this.hasSYN = hasSYN;
     }
 
+    public void clear(){
+        mNotes.clear();
+    }
+
     public void getMymNotesFormNet(final Handler handler) {
         mNotes.clear();
         AVQuery<AVObject> query = new AVQuery<>("Note");

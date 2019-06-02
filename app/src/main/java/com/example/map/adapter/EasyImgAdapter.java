@@ -17,6 +17,7 @@ import java.util.List;
 public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHolder>{
     private List<String> strings;
     private Context context;
+    private ClickListener listener;
     public EasyImgAdapter(List<String> strings, Context context){
         this.strings=strings;
         this.context=context;
@@ -41,6 +42,12 @@ public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHold
         Glide.with(context).load(s)
                 .apply(options)
                 .into(holder.view);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onclick(position);
+            }
+        });
 
     }
 
@@ -57,5 +64,12 @@ public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHold
         return new EasyImgAdapter.ViewHolder(view);
     }
 
+    public void setListener(ClickListener listener) {
+        this.listener = listener;
+    }
+
+    public interface ClickListener{
+        void onclick(int position);
+    }
 
 }

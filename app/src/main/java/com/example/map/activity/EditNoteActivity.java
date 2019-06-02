@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class EditNoteActivity extends AppCompatActivity implements View.OnClickListener {
+public class EditNoteActivity extends BaseActivity implements View.OnClickListener {
     private static final String LONGITUDE = "longitude";
     private static final String LATITUDE = "latitude";
     private List<String> selectList = new ArrayList<>();

@@ -90,6 +90,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.map.R;
 import com.example.map.SPStr;
 import com.example.map.adapter.DaohangAdapter;
+import com.example.map.bean.NoteLab;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
@@ -818,6 +819,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 SharedPreferences.Editor editor = sp.edit();
                 editor.clear();
                 editor.apply();
+                NoteLab.get(getApplication()).clear();
+                NoteLab.get(getApplication()).setHasSYN(false);
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();
