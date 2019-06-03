@@ -14,7 +14,8 @@
         android:layout_height="wrap_content"
         android:src="@drawable/back_24"
         android:layout_marginTop="20dp"
-        android:layout_marginLeft="10dp"/>
+        android:layout_marginLeft="10dp"
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/register_title"
@@ -26,98 +27,106 @@
         android:textSize="24dp"
         android:layout_marginTop="20dp"/>
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/register_usernameLayout"
+    <EditText
+        android:id="@+id/register_username"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:counterEnabled="true"
-        android:layout_marginTop="50dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_below="@+id/register_title"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        app:counterMaxLength="20">
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/register_username"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="账号名"/>
-    </android.support.design.widget.TextInputLayout>
+        android:layout_height="34dp"
+        android:layout_marginStart="34dp"
+        android:layout_marginLeft="34dp"
+        android:layout_marginTop="220dp"
+        android:layout_marginEnd="34dp"
+        android:layout_marginRight="34dp"
+        android:background="@drawable/edittext_gray_line_2"
+        android:drawableStart="@drawable/person"
+        android:drawableLeft="@drawable/person"
+        android:drawablePadding="20dp"
+        android:hint="请输入用户名"
+        android:maxLength="20"
+        android:paddingStart="15dp"
+        android:paddingLeft="15dp"
+        android:paddingEnd="15dp"
+        android:paddingRight="15dp"
+        android:textSize="12sp" />
 
-
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/register_passwordLayout"
+    <EditText
+        android:id="@+id/register_password"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_below="@+id/register_usernameLayout"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        app:passwordToggleEnabled="true">
+        android:layout_height="34dp"
+        android:layout_below="@+id/register_username"
+        android:layout_marginStart="34dp"
+        android:layout_marginLeft="34dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="34dp"
+        android:layout_marginRight="34dp"
+        android:background="@drawable/edittext_gray_line_2"
+        android:drawableStart="@drawable/unlock"
+        android:drawableLeft="@drawable/unlock"
+        android:drawablePadding="20dp"
+        android:hint="请输入密码"
+        android:maxLength="11"
+        android:inputType="textPassword"
+        android:paddingStart="15dp"
+        android:paddingLeft="15dp"
+        android:paddingEnd="15dp"
+        android:paddingRight="15dp"
+        android:textSize="12sp" />
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/register_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:hint="密码" />
-    </android.support.design.widget.TextInputLayout>
 
-
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/register_checkPasswordLayout"
+    <EditText
+        android:id="@+id/register_checkPassword"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_below="@+id/register_passwordLayout"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        app:passwordToggleEnabled="true">
+        android:layout_height="34dp"
+        android:layout_below="@+id/register_password"
+        android:layout_marginStart="34dp"
+        android:layout_marginLeft="34dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="34dp"
+        android:layout_marginRight="34dp"
+        android:background="@drawable/edittext_gray_line_2"
+        android:drawableStart="@drawable/lock"
+        android:drawableLeft="@drawable/lock"
+        android:drawablePadding="20dp"
+        android:hint="请确认密码"
+        android:maxLength="11"
+        android:inputType="textPassword"
+        android:paddingStart="15dp"
+        android:paddingLeft="15dp"
+        android:paddingEnd="15dp"
+        android:paddingRight="15dp"
+        android:textSize="12sp" />
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/register_checkPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:passwordToggleEnabled="true"
-            android:inputType="textPassword"
-            android:hint="确认密码"/>
-    </android.support.design.widget.TextInputLayout>
-
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/register_emailLayout"
+    <EditText
+        android:id="@+id/register_email"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_below="@+id/register_checkPasswordLayout"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        >
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/register_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textWebEmailAddress"
-            android:hint="验证邮箱"/>
-    </android.support.design.widget.TextInputLayout>
+        android:layout_height="34dp"
+        android:layout_below="@+id/register_checkPassword"
+        android:layout_marginStart="34dp"
+        android:layout_marginLeft="34dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="34dp"
+        android:layout_marginRight="34dp"
+        android:background="@drawable/edittext_gray_line_2"
+        android:drawableStart="@drawable/mail"
+        android:drawableLeft="@drawable/mail"
+        android:drawablePadding="20dp"
+        android:hint="请输入验证邮箱"
+        android:paddingStart="15dp"
+        android:paddingLeft="15dp"
+        android:paddingEnd="15dp"
+        android:paddingRight="15dp"
+        android:textSize="12sp" />
 
     <Button
         android:id="@+id/register_register_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/register_emailLayout"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_height="35dp"
+        android:layout_below="@+id/register_email"
+        android:layout_marginTop="25dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="35dp"
+        android:layout_centerHorizontal="true"
         android:text="注册并登入"
-        android:textColor="@color/green"
+        android:textColor="@color/white"
         android:background="@drawable/red_corner_button"/>
 
 </RelativeLayout>

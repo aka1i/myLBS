@@ -797,7 +797,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         Glide.with(this).applyDefaultRequestOptions(options).load(sp.getString(SPStr.HEAD_IMG,"")).into(headImg);
         Button logoutButton = popView.findViewById(R.id.logout_button);
         TextView userNmaeText = popView.findViewById(R.id.user_name);
+        TextView noteCountText = popView.findViewById(R.id.note_count);
+        TextView studyCountText = popView.findViewById(R.id.study_count);
+        TextView eatCountText = popView.findViewById(R.id.eat_count);
+        Log.d(TAG, "showMePop: " +sp.getString(SPStr.HEAD_IMG,""));
         userNmaeText.setText("用户名：" + sp.getString(SPStr.USER_NAME,""));
+        noteCountText.setText("拥有 "+ sp.getInt(SPStr.NOTE_COUNT,0) + " 块记忆");
+        studyCountText.setText("累计食堂打卡 "+ sp.getInt(SPStr.STUDY_COUNT,0) + " 次");
+        eatCountText.setText("累计图书馆打卡 "+ sp.getInt(SPStr.EAT_COUNT,0) + " 次");
         mePop = new PopupWindow(popView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         mePop.setOutsideTouchable(true);
@@ -1242,7 +1249,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     case Activity.RESULT_OK:
                         progressDialog = new ProgressDialog(MainActivity.this);
                         progressDialog.setCancelable(false);
-                        progressDialog.setMessage("正在修改信息...");
+                        progressDialog.setMessage("正在修改头像...");
                         progressDialog.show();
                         if (Build.VERSION.SDK_INT >= 19) {
                             path = OpenAlbumUtil.handleImageOnKitKat(this,data);
@@ -1250,28 +1257,37 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                             path = OpenAlbumUtil.handleImageBeforeKitKat(this,data);
                         }
                         if (data != null) {
-                            AVUser avUser = AVUser.getCurrentUser();
+                            final AVUser avUser = AVUser.getCurrentUser();
                             if (path != null){
                                 try {
                                     final AVFile file = AVFile.withAbsoluteLocalPath("LeanCloud.png", path);
-                                    avUser.put("pic", file);
-                                    avUser.saveInBackground(new SaveCallback() {
+                                    file.saveInBackground(new SaveCallback() {
                                         @Override
                                         public void done(AVException e) {
-                                            if (e == null) {
-                                                Uri uri = data.getData();
-                                                headImg.setImageURI(uri);
-                                                Toast.makeText(MainActivity.this,"头像修改成功",Toast.LENGTH_SHORT).show();
-                                                SharedPreferences.Editor editor = sp.edit();
-                                                editor.putString(SPStr.HEAD_IMG,file.getUrl());
-                                                editor.apply();
+                                            if (e == null){
+                                                avUser.put("pic", file);
+                                                avUser.saveInBackground(new SaveCallback() {
+                                                    @Override
+                                                    public void done(AVException e) {
+                                                        if (e == null) {
+                                                            Uri uri = data.getData();
+                                                            headImg.setImageURI(uri);
+                                                            Toast.makeText(MainActivity.this,"头像修改成功",Toast.LENGTH_SHORT).show();
+                                                            SharedPreferences.Editor editor = sp.edit();
+                                                            editor.putString(SPStr.HEAD_IMG,file.getUrl());
+                                                            editor.apply();
 
-                                            } else {
-                                                Toast.makeText(MainActivity.this,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                                                        } else {
+                                                            Toast.makeText(MainActivity.this,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                                                        }
+                                                        progressDialog.cancel();
+                                                    }
+                                                });
                                             }
-                                            progressDialog.cancel();
+
                                         }
                                     });
+
                                 } catch (FileNotFoundException e) {
                                     e.printStackTrace();
                                     Toast.makeText(this,"找不到图片",Toast.LENGTH_SHORT).show();

@@ -18,14 +18,40 @@
           <de.hdodenhof.circleimageview.CircleImageView
               android:id="@+id/head_img"
               android:layout_width="75dp"
-              android:layout_height="75dp"
-              android:src="@drawable/default_head"/>
+              android:layout_height="75dp" />
 
           <TextView
               android:id="@+id/user_name"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:layout_toRightOf="@+id/head_img"
+              android:textColor="@color/black"
+              android:textSize="16sp"
+              android:layout_marginLeft="10dp"/>
+          <TextView
+              android:id="@+id/note_count"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_toRightOf="@+id/head_img"
+              android:textColor="@color/black"
+              android:layout_below="@+id/user_name"
+              android:textSize="16sp"
+              android:layout_marginLeft="10dp"/>
+          <TextView
+              android:id="@+id/study_count"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_toRightOf="@+id/head_img"
+              android:layout_below="@+id/note_count"
+              android:textColor="@color/black"
+              android:textSize="16sp"
+              android:layout_marginLeft="10dp"/>
+          <TextView
+              android:id="@+id/eat_count"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_toRightOf="@+id/head_img"
+              android:layout_below="@+id/study_count"
               android:textColor="@color/black"
               android:textSize="16sp"
               android:layout_marginLeft="10dp"/>

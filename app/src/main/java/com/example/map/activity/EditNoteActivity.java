@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,7 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class EditNoteActivity extends BaseActivity implements View.OnClickListener {
+public class EditNoteActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String LONGITUDE = "longitude";
     private static final String LATITUDE = "latitude";
     private List<String> selectList = new ArrayList<>();
@@ -141,8 +142,8 @@ public class EditNoteActivity extends BaseActivity implements View.OnClickListen
         final int[] emojiIds =  new int[]{R.drawable.emoji_1,R.drawable.emoji_2,R.drawable.emoji_3,
                 R.drawable.emoji_4,R.drawable.emoji_5,R.drawable.emoji_6,R.drawable.emoji_7,R.drawable.emoji_8
                  ,R.drawable.emoji_9,R.drawable.emoji_10};
-        for (int i = 0;i < emojiIds.length; i++){
-            urls.add(Uri.parse("android.resource://" + getPackageName() + "/" + emojiIds[i]).toString());
+        for (int i : emojiIds){
+            urls.add(Uri.parse("android.resource://" + getPackageName() + "/" + i).toString());
         }
 
 

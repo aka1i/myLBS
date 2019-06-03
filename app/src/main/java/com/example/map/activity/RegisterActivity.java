@@ -17,6 +17,7 @@ import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.SignUpCallback;
 import com.example.map.R;
+import com.example.map.SPStr;
 
 public class RegisterActivity extends BaseActivity {
     EditText username;
@@ -24,8 +25,6 @@ public class RegisterActivity extends BaseActivity {
     EditText checkPassword;
     EditText email;
     Button regisetButton;
-    TextInputLayout passwordLayout;
-    TextInputLayout checkPasswordLayout;
     ImageView mBackImage;
     String usernameText = "";
     String phoneNumberText = "";
@@ -47,8 +46,6 @@ public class RegisterActivity extends BaseActivity {
         password = findViewById(R.id.register_password);
         checkPassword = findViewById(R.id.register_checkPassword);
         regisetButton = findViewById(R.id.register_register_button);
-        passwordLayout = findViewById(R.id.register_passwordLayout);
-        checkPasswordLayout = findViewById( R.id.register_checkPasswordLayout);
         mBackImage = findViewById(R.id.back_image);
 
         mBackImage.setOnClickListener(new View.OnClickListener(){
@@ -105,12 +102,9 @@ public class RegisterActivity extends BaseActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 passwordText = String.valueOf(s);
-                if (passwordText.length() < 6){
-                    passwordLayout.setErrorEnabled(true);
-                    passwordLayout.setError("密码不能小于6位");
-                }
-                else
-                    passwordLayout.setErrorEnabled(false);
+                if (passwordText.length() < 6)
+                    password.setError("密码不能小于6位");
+
             }
 
             @Override
@@ -127,11 +121,8 @@ public class RegisterActivity extends BaseActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 checkPasswordText = String.valueOf(s);
-                if (!checkPasswordText.equals(passwordText)){
-                    checkPasswordLayout.setErrorEnabled(true);
-                    checkPasswordLayout.setError("两次密码不一样");
-                }else
-                    checkPasswordLayout.setErrorEnabled(false);
+                if (!checkPasswordText.equals(passwordText))
+                    checkPassword.setError("两次密码不一样");
             }
 
             @Override
@@ -177,6 +168,11 @@ public class RegisterActivity extends BaseActivity {
                 if (e == null) {
                     editor = getSharedPreferences("user_info", MODE_PRIVATE).edit();
                     editor.putString("user_id",user.getObjectId());
+                    editor.putString("user_name",user.getUsername());
+                    editor.putInt(SPStr.NOTE_COUNT,0);
+                    editor.putInt(SPStr.EAT_COUNT,0);
+                    editor.putInt(SPStr.STUDY_COUNT,0);
+
                     editor.apply();
                     Toast.makeText(RegisterActivity.this,"注册成功",Toast.LENGTH_SHORT).show();
                     // 注册成功，把用户对象赋值给当前用户 AVUser.getCurrentUser()

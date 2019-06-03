@@ -117,6 +117,25 @@ public class NoteLab {
         noteSave.put("hasPosition", note.isHasPosition());
         noteSave.put("owner",note.getOwner());
         final List<String> uploadUrl = new ArrayList<>();
+        if (note.getImgUrl().size() == 0) {
+            noteSave.put("imgUrl", uploadUrl);
+
+            noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        mNotes.add(0, note);
+                        handler.sendEmptyMessage(0);
+                        // 存储成功
+                        // 保存成功之后，objectId 会自动从服务端加载到本地
+                    } else {
+                        handler.sendEmptyMessage(-999);
+                        // 失败的话，请检查网络环境以及 SDK 配置是否正确
+                    }
+                }
+            });
+            return;
+        }
         for (String url : note.getImgUrl()){
             try {
                 final AVFile file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
@@ -125,7 +144,10 @@ public class NoteLab {
                     public void done(AVException e) {
                         if (e == null){
                             uploadUrl.add(file.getUrl());
+                            Log.d(TAG, "addNote: " + file.getUrl());
                             time++;
+                            Log.d(TAG, "done: " + time);
+                            Log.d(TAG, "done: " + note.getImgUrl().size());
                             if (time == note.getImgUrl().size()){
                                 noteSave.put("imgUrl",uploadUrl);
 

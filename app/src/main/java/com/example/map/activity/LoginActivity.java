@@ -22,7 +22,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText mUsername;
     private EditText mPassword;
     private Button mLoginButton;
-    private Button mRegisterButton;
+    private TextView mRegisterButton;
     private TextView mForgotPassword;
     SharedPreferences.Editor editor;
     @Override
@@ -67,7 +67,10 @@ public class LoginActivity extends AppCompatActivity {
                                 AVFile headImg = avUser.getAVFile("pic");
                                 if (headImg != null)
                                    editor.putString(SPStr.HEAD_IMG,headImg.getUrl());
-                                editor.commit();
+                                editor.putInt(SPStr.NOTE_COUNT,0);
+                                editor.putInt(SPStr.EAT_COUNT,0);
+                                editor.putInt(SPStr.STUDY_COUNT,0);
+                                editor.apply();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                 Toast.makeText(LoginActivity.this, "脑电波接入成功~~~", Toast.LENGTH_SHORT).show();
                                 finish();
