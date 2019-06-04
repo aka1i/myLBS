@@ -224,10 +224,6 @@ public class NoteLab {
 //        }
     }
     public void deleteEvent(final NoteBean note, final Handler handler){
-        final ProgressDialog progressDialog = new ProgressDialog(mContext);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("请稍后...");
-        progressDialog.show();
         final AVObject noteDelet = AVObject.createWithoutData("Note", note.getId());
         noteDelet.deleteInBackground(new DeleteCallback() {
             @Override
@@ -241,11 +237,9 @@ public class NoteLab {
                         }
                     }
                     handler.sendEmptyMessage(0);
-                    Toast.makeText(mContext,"删除成功",Toast.LENGTH_SHORT).show();
                 }else {
-                    Toast.makeText(mContext,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                    handler.sendEmptyMessage(-999);
                 }
-                progressDialog.cancel();
             }
         });
     }

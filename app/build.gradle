@@ -62,4 +62,6 @@ dependencies {
     implementation('cn.leancloud.android:avoscloud-sdk:4.7.9')
     //圆头像
     implementation 'de.hdodenhof:circleimageview:2.2.0'
+
+
 }

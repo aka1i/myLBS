@@ -20,17 +20,17 @@
             android:textColor="@color/white"
             android:textSize="20sp" />
 
-        <!--<TextView-->
-        <!--android:id="@+id/modifyinfo_btn"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="50dp"-->
-        <!--android:layout_marginEnd="8dp"-->
-        <!--android:layout_marginRight="8dp"-->
-        <!--android:layout_gravity="right"-->
-        <!--android:gravity="center_vertical"-->
-        <!--android:text="保存"-->
-        <!--android:textColor="@color/white"-->
-        <!--android:textSize="20sp" />-->
+        <ImageView
+            android:id="@+id/delete_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_gravity="right"
+            android:gravity="center_vertical"
+            android:text="保存"
+            android:visibility="invisible"
+            android:src="@drawable/delete_fill"/>
 
     </android.support.v7.widget.Toolbar>
 

@@ -1,8 +1,10 @@
 package com.example.map.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -28,6 +30,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,8 +71,10 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
     private EditText mSummaryText;
     private ImageView emojiImg;
     private Button mApplyButton;
+    private ImageView deleteImg;
     private PopupWindow albumPop;
     private PopupWindow emojiPop;
+    private PopupWindow selectPop;
     private int type;
     private double longitude;
     private double latitude;
@@ -106,6 +111,7 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         mSummaryText = findViewById(R.id.edit_note_summary);
         emojiImg = findViewById(R.id.emoji_img);
         mApplyButton = findViewById(R.id.apply_button);
+        deleteImg = findViewById(R.id.delete_img);
         RecyclerView recyclerView = findViewById(R.id.edit_note_pics);
         recyclerView.setLayoutManager(new GridLayoutManager(this,3));
         adapter = new GridImageAdapter(this,onAddPicClickListener);
@@ -116,7 +122,9 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         emojiImg.setBackground(getDrawable(R.drawable.emoji_1));
         emojiImg.setOnClickListener(this);
         mApplyButton.setOnClickListener(this);
+        deleteImg.setOnClickListener(this);
         if (type == 1){
+            deleteImg.setVisibility(View.VISIBLE);
             mTitleText.setText(intent.getStringExtra(TITLE));
             mSummaryText.setText(intent.getStringExtra(SUMMARY));
             emojiImg.setBackground(getDrawable(intent.getIntExtra(EMOJIID,0)));
@@ -148,6 +156,9 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         switch (v.getId()){
             case R.id.emoji_img:
                 showSelectEmojiPop();
+                break;
+            case R.id.delete_img:
+                showSelectPop();
                 break;
             case R.id.apply_button:
                 progressDialog = new ProgressDialog(this);
@@ -183,6 +194,54 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
 
                 break;
         }
+    }
+
+    private void showSelectPop(){
+        View popView = View.inflate(EditNoteActivity.this,R.layout.layout_select_pop,null);
+        RelativeLayout cancle = popView.findViewById(R.id.cancle_rl);
+        RelativeLayout apply = popView.findViewById(R.id.apply_rl);
+        View.OnClickListener listener= new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()){
+                    case R.id.cancle_rl:
+                        break;
+                    case R.id.apply_rl:
+                        progressDialog = new ProgressDialog(EditNoteActivity.this);
+                        progressDialog.setCancelable(false);
+                        progressDialog.setMessage("正在抹去您的记忆...");
+                        progressDialog.show();
+                        NoteLab.get(EditNoteActivity.this).deleteEvent(NoteLab.get(EditNoteActivity.this).getById(getIntent().getStringExtra(NOTEID)),handler2);
+                        break;
+                }
+                selectPop.dismiss();
+            }
+        };
+        cancle.setOnClickListener(listener);
+        apply.setOnClickListener(listener);
+
+        selectPop = new PopupWindow(popView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        selectPop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        selectPop.setOutsideTouchable(true);
+        selectPop.setFocusable(true);
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.alpha = 0.5f;
+        getWindow().setAttributes(lp);
+
+        selectPop.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.alpha = 1f;
+                getWindow().setAttributes(lp);
+                emojiPop = null;
+            }
+        });
+        selectPop.setAnimationStyle(R.style.left_to_right_anim);
+//        choosePop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        selectPop.showAtLocation(getWindow().getDecorView(), Gravity.CENTER, 0, 0);
+
     }
 
     private void showSelectEmojiPop(){
@@ -383,6 +442,8 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         intent.putExtra(TYPE,1);
         return intent;
     }
+
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -397,6 +458,28 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
                     editor.apply();
                     OnlineUtils.saveData(getApplicationContext());
                     Toast.makeText(EditNoteActivity.this,"刻入成功",Toast.LENGTH_SHORT).show();
+                    break;
+                case -999:
+                    Toast.makeText(EditNoteActivity.this,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
+    @SuppressLint("HandlerLeak")
+    Handler handler2 = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (progressDialog!=null)
+                progressDialog.cancel();
+            switch (msg.what){
+                case 0:
+                    finish();
+                    SharedPreferences.Editor editor = getSharedPreferences(SPStr.USER_INFO,MODE_PRIVATE).edit();
+                    editor.putInt(SPStr.NOTE_COUNT,NoteLab.get(getApplicationContext()).getmNotes().size());
+                    editor.apply();
+                    OnlineUtils.saveData(getApplicationContext());
+                    Toast.makeText(EditNoteActivity.this,"抹除成功",Toast.LENGTH_SHORT).show();
                     break;
                 case -999:
                     Toast.makeText(EditNoteActivity.this,"网络异常，请稍后",Toast.LENGTH_SHORT).show();

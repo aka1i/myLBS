@@ -19,7 +19,8 @@ public class OnlineUtils {
         avUser.put(SPStr.NOTE_COUNT, sp.getInt(SPStr.NOTE_COUNT,0));
         avUser.put(SPStr.STUDY_COUNT, sp.getInt(SPStr.STUDY_COUNT,0));
         avUser.put(SPStr.EAT_COUNT, sp.getInt(SPStr.EAT_COUNT,0));
-
+        avUser.put(SPStr.EAT_LAST_TIME, sp.getLong(SPStr.EAT_LAST_TIME,0));
+        avUser.put(SPStr.STUDY_LAST_TIME, sp.getLong(SPStr.STUDY_LAST_TIME,0));
         avUser.saveInBackground(new SaveCallback() {
             @Override
             public void done(AVException e) {

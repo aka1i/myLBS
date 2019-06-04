@@ -70,6 +70,8 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putInt(SPStr.NOTE_COUNT,avUser.getInt(SPStr.NOTE_COUNT));
                                 editor.putInt(SPStr.EAT_COUNT,avUser.getInt(SPStr.EAT_COUNT));
                                 editor.putInt(SPStr.STUDY_COUNT,avUser.getInt(SPStr.STUDY_COUNT));
+                                editor.putLong(SPStr.STUDY_LAST_TIME,avUser.getLong(SPStr.STUDY_LAST_TIME));
+                                editor.putLong(SPStr.EAT_LAST_TIME,avUser.getLong(SPStr.EAT_LAST_TIME));
                                 editor.apply();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                 Toast.makeText(LoginActivity.this, "脑电波接入成功~~~", Toast.LENGTH_SHORT).show();

@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
@@ -97,7 +98,9 @@ import com.example.map.overlayutil.WalkingRouteOverlay;
 import com.example.map.utils.BitmapUtil;
 import com.example.map.utils.MyLatLngUtil;
 import com.example.map.utils.MyMapUtil;
+import com.example.map.utils.OnlineUtils;
 import com.example.map.utils.OpenAlbumUtil;
+import com.example.map.utils.TimeUtils;
 import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
@@ -105,6 +108,7 @@ import com.nightonke.boommenu.BoomMenuButton;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -801,10 +805,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         TextView noteCountText = popView.findViewById(R.id.note_count);
         TextView studyCountText = popView.findViewById(R.id.study_count);
         TextView eatCountText = popView.findViewById(R.id.eat_count);
-        userNmaeText.setText("用户名：" + sp.getString(SPStr.USER_NAME,""));
-        noteCountText.setText("拥有 "+ sp.getInt(SPStr.NOTE_COUNT,0) + " 块记忆");
-        studyCountText.setText("累计食堂打卡 "+ sp.getInt(SPStr.STUDY_COUNT,0) + " 次");
-        eatCountText.setText("累计图书馆打卡 "+ sp.getInt(SPStr.EAT_COUNT,0) + " 次");
+        userNmaeText.setText(Html.fromHtml("用户名：<font color='#ce3c3d'>" + sp.getString(SPStr.USER_NAME,"") + "</font>"));
+        noteCountText.setText(Html.fromHtml("拥有 <font color='#ce3c3d'>"+ sp.getInt(SPStr.NOTE_COUNT,0) + "</font> 块记忆"));
+        studyCountText.setText(Html.fromHtml("累计食堂打卡 <font color='#ce3c3d'>"+ sp.getInt(SPStr.EAT_COUNT,0) + "</font> 次"));
+        eatCountText.setText(Html.fromHtml("累计图书馆打卡 <font color='#ce3c3d'>"+ sp.getInt(SPStr.STUDY_COUNT,0) + "</font> 次"));
         mePop = new PopupWindow(popView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mePop.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         mePop.setOutsideTouchable(true);
@@ -1065,6 +1069,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             super.handleMessage(msg);
         //   BDLocation location = (BDLocation) msg.obj;
             mapClear();
+            long lastTime = sp.getLong(SPStr.STUDY_LAST_TIME,0);
+            if (TimeUtils.isSameDay(new Date().getTime(),lastTime)){
+                Toast.makeText(MainActivity.this,"一天只能打卡一次哦!",Toast.LENGTH_SHORT).show();
+                return;
+            }
             OverlayOptions ooCircle = new CircleOptions().fillColor(0x4057FFF8)
                     .center(PositionData.teachingBuilding.get("图书馆")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(100);
             mBaiduMap.addOverlay(ooCircle);
@@ -1083,6 +1092,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 //按钮颜色
                 //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_yellow));
              //   mBaiduMap.setMyLocationEnabled(false);
+                int count = sp.getInt(SPStr.STUDY_COUNT,0);
+                count++;
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putInt(SPStr.STUDY_LAST_TIME,count);
+                editor.putLong(SPStr.STUDY_LAST_TIME,new Date().getTime());
+                editor.apply();
+                OnlineUtils.saveData(MainActivity.this);
             } else {
                 setTextOption(LocationPoint, "您不在图书馆范围之内", "#FF6C6C");
                 setMarkerOptions(mDestinationPoint, R.mipmap.library_icon);
@@ -1103,6 +1119,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            long lastTime = sp.getLong(SPStr.EAT_LAST_TIME,0);
+            if (TimeUtils.isSameDay(new Date().getTime(),lastTime)){
+                Toast.makeText(MainActivity.this,"一天只能打卡一次哦!",Toast.LENGTH_SHORT).show();
+                return;
+            }
             int radius = 70;
             OverlayOptions ooCircle1 = new CircleOptions().fillColor(0x4057FFF8)
                     .center(PositionData.canteen.get("紫荆园")).stroke(new Stroke(1, 0xB6FFFFFF)).radius(radius);
@@ -1129,8 +1150,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 double mDistance = DistanceUtil.getDistance(mDestinationPoints[i], LocationPoint);
                 if (mMinDistance > mDistance){
                     mDestinationPoint = mDestinationPoints[i];
+                    mMinDistance = mDistance;
                 }
             }
+            Log.d(TAG, "mMinDistance: " + mMinDistance);
             //       setCircleOptions();
             //计算两点距离,单位：米
 
@@ -1143,6 +1166,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 setMarkerOptions(mDestinationPoint, R.mipmap.arrive_icon);
                 //按钮颜色
                 //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_yellow));
+                int count = sp.getInt(SPStr.EAT_COUNT,0);
+                count++;
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putInt(SPStr.EAT_COUNT,count);
+                editor.putLong(SPStr.EAT_LAST_TIME,new Date().getTime());
+                editor.apply();
+                OnlineUtils.saveData(MainActivity.this);
             } else {
                 setTextOption(LocationPoint, "您不在食堂范围之内", "#FF6C6C");
                 setMarkerOptions(mDestinationPoint, R.mipmap.restaurant_icon);
@@ -1165,6 +1195,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             mapClear();
         }
     };
+
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler4 = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+
+            }
+        }
+    };
+
 
     public class MyLocationListener extends BDAbstractLocationListener {
         @Override

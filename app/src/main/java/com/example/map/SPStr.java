@@ -8,4 +8,6 @@ public class SPStr {
     public static final String NOTE_COUNT = "note_count";
     public static final String STUDY_COUNT = "study_count";
     public static final String EAT_COUNT = "eat_count";
+    public static final String STUDY_LAST_TIME = "study_last_time";//上次打卡时间
+    public static final String EAT_LAST_TIME = "eat_last_time";//上次打卡时间
 }
