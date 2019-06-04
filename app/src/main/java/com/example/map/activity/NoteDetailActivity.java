@@ -10,9 +10,9 @@ import com.example.map.bean.NoteBean;
 
 public class NoteDetailActivity extends AppCompatActivity {
     private final static String NOTE = "note";
-    private final static String TITLE = "note";
-    private final static String SUMMARY = "note";
-    private final static String EMOJIID = "note";
+    private final static String TITLE = "title";
+    private final static String SUMMARY = "summary";
+    private final static String EMOJIID = "emojiid";
     private final static String LONGITUDE = "longitude";
     private final static String LATITUDE = "latitude";
     private final static String HASPOSITION = "hasPosition";

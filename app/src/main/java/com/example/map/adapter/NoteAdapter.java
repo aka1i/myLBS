@@ -18,6 +18,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.map.R;
 import com.example.map.SPStr;
+import com.example.map.activity.EditNoteActivity;
 import com.example.map.activity.NoteDetailActivity;
 import com.example.map.bean.NoteBean;
 import com.example.map.utils.ImgDetailUtil;
@@ -109,7 +110,7 @@ public class NoteAdapter extends RecyclerView.Adapter {
         }
         @Override
         public void onClick(View v) {
-            Intent intent = NoteDetailActivity.newIntent(context,note);
+            Intent intent = EditNoteActivity.newIntent(context,note);
             context.startActivity(intent);
         }
     }

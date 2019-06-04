@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 public class NoteLab {
@@ -33,7 +34,8 @@ public class NoteLab {
     private static Context mContext;
     private static String TAG = "NoteLab";
     private boolean hasSYN = false; //是否同步成功过
-    int time = 0;//图片上次数
+    int time = 0;//已经图片上次数
+    int count = 0;//本次上传的图片次数
     public NoteLab(Context context){
         mContext = context.getApplicationContext();
     }
@@ -248,64 +250,100 @@ public class NoteLab {
         });
     }
 
-    public void updateEvent(final NoteBean note, final Handler handler,final String path){
-        final ProgressDialog progressDialog = new ProgressDialog(mContext);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("请稍后...");
-        progressDialog.show();
+    public void updateEvent(final NoteBean note, final Handler handler,final HashMap<String,Boolean> map){
+        time = 0;
+        count = 0;
         AVQuery<AVObject> avQuery = new AVQuery<>("Note");
         avQuery.getInBackground(note.getId(), new GetCallback<AVObject>() {
             @Override
-            public void done(AVObject noteSave, AVException e) {
-                if (e == null){
+            public void done(final AVObject noteSave, AVException e) {
+                if (e == null) {
                     noteSave.put("title", note.getTitle());// 设置名称
                     noteSave.put("detail", note.getDetail());// 设置优先级
                     noteSave.put("longitude", note.getLongitude());// 设置优先级
-                    noteSave.put("latitude",note.getLatitude());
-                    noteSave.put("time",note.getTime());
-                    noteSave.put("emojiId",note.getEmojiId());
+                    noteSave.put("latitude", note.getLatitude());
+                    noteSave.put("time", note.getTime());
+                    noteSave.put("emojiId", note.getEmojiId());
                     noteSave.put("hasPosition", note.isHasPosition());// 设置优先级
-                    noteSave.put("owner",note.getOwner());
-                    List<String> uploadImgUrl = new ArrayList<>();
-                    for (String url : note.getImgUrl()){
-                        AVFile file = null;
-                        try {
-                            file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
-                            file.saveInBackground(new SaveCallback() {
-                                @Override
-                                public void done(AVException e) {
-                                    if (e == null){
-                                        time++;
-                                    }
-                                }
-                            });
-                        } catch (FileNotFoundException f) {
-                            f.printStackTrace();
-                            Toast.makeText(mContext,"找不到图片",Toast.LENGTH_SHORT).show();
+                    noteSave.put("owner", note.getOwner());
+                    final List<String> uploadUrl = new ArrayList<>();
+                    final List<AVFile> files = new ArrayList<>();
+                    try {
+                        for (String s : note.getImgUrl()) {
+                            if (map.get(s) == null)
+                                files.add(AVFile.withAbsoluteLocalPath("LeanCloud.png", s));
+                            else {
+                                uploadUrl.add(s);
+                                time++;
+                            }
                         }
+                    }catch (FileNotFoundException d){
+                        d.printStackTrace();
                     }
-              //      noteSave.put("imgUrl",files);
+                    Log.d(TAG, "done: " + note.getImgUrl().size());
+                    Log.d(TAG, "done: " +time);
+                    if (note.getImgUrl().size() == time) {
+                        noteSave.put("imgUrl", uploadUrl);
 
-                    noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+                        noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+                            @Override
+                            public void done(AVException e) {
+                                if (e == null) {
+                                    handler.sendEmptyMessage(0);
+                                    // 存储成功
+                                    // 保存成功之后，objectId 会自动从服务端加载到本地
+                                } else {
+                                    handler.sendEmptyMessage(-999);
+                                    // 失败的话，请检查网络环境以及 SDK 配置是否正确
+                                }
+                            }
+                        });
+                        return;
+                    }
+                    SaveCallback saveCallback = new SaveCallback() {
                         @Override
                         public void done(AVException e) {
                             if (e == null) {
-                                handler.sendEmptyMessage(0);
-                                Toast.makeText(mContext,"修改成功",Toast.LENGTH_SHORT).show();
-                                // 存储成功
-                                // 保存成功之后，objectId 会自动从服务端加载到本地
+                                uploadUrl.add(files.get(count).getUrl());
+                                count++;
+                                time++;
+                                if (time == note.getImgUrl().size()) {
+                                    noteSave.put("imgUrl", uploadUrl);
+
+                                    noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+                                        @Override
+                                        public void done(AVException e) {
+                                            if (e == null) {
+                                                handler.sendEmptyMessage(0);
+                                                // 存储成功
+                                                // 保存成功之后，objectId 会自动从服务端加载到本地
+                                            } else {
+                                                handler.sendEmptyMessage(-999);
+                                                // 失败的话，请检查网络环境以及 SDK 配置是否正确
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    files.get(count).saveInBackground(this);
+                                }
                             } else {
                                 Log.d(TAG, "done: " + e.getMessage());
-                                Toast.makeText(mContext,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                                handler.sendEmptyMessage(-999);
                                 // 失败的话，请检查网络环境以及 SDK 配置是否正确
                             }
-                            progressDialog.cancel();
                         }
-                    });
-                }else {
-                    Toast.makeText(mContext,"网络异常，请稍后",Toast.LENGTH_SHORT).show();
+                    };
+                    files.get(0).saveInBackground(saveCallback);
+
                 }
             }
         });
+    }
+    public NoteBean getById(String id){
+        for (NoteBean noteBean : mNotes){
+            if (noteBean.getId().equals(id))
+                return noteBean;
+        }
+        return null;
     }
 }

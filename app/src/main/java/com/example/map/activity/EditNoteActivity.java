@@ -44,12 +44,24 @@ import com.example.map.utils.OpenAlbumUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class EditNoteActivity extends AppCompatActivity implements View.OnClickListener {
-    private static final String LONGITUDE = "longitude";
-    private static final String LATITUDE = "latitude";
+    private final static String NOTE = "note";
+    private final static String NOTEID = "noteid";
+    private final static String TITLE = "title";
+    private final static String SUMMARY = "summary";
+    private final static String EMOJIID = "emojiid";
+    private final static String LONGITUDE = "longitude";
+    private final static String LATITUDE = "latitude";
+    private final static String IMGURLS = "imgurls";
+    private final static String HASPOSITION = "hasPosition";
+    private final static String TIME = "time";
+    private final static String AVUSER = "avuser";
+    private final static String TYPE = "type";
     private List<String> selectList = new ArrayList<>();
+    private HashMap<String,Boolean> hashMap = new HashMap<>();
     private RecyclerView recyclerView;
     private GridImageAdapter adapter;
     private EditText mTitleText;
@@ -58,6 +70,7 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
     private Button mApplyButton;
     private PopupWindow albumPop;
     private PopupWindow emojiPop;
+    private int type;
     private double longitude;
     private double latitude;
     private ProgressDialog progressDialog;
@@ -71,8 +84,14 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         init();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
     private void init(){
         Intent intent = getIntent();
+        type = intent.getIntExtra(TYPE,0);
         latitude = intent.getDoubleExtra(LATITUDE,0);
         longitude = intent.getDoubleExtra(LONGITUDE,0);
         Toolbar toolbar = findViewById(R.id.setting_title);
@@ -97,6 +116,19 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         emojiImg.setBackground(getDrawable(R.drawable.emoji_1));
         emojiImg.setOnClickListener(this);
         mApplyButton.setOnClickListener(this);
+        if (type == 1){
+            mTitleText.setText(intent.getStringExtra(TITLE));
+            mSummaryText.setText(intent.getStringExtra(SUMMARY));
+            emojiImg.setBackground(getDrawable(intent.getIntExtra(EMOJIID,0)));
+            selectList = intent.getStringArrayListExtra(IMGURLS);
+            for (String s : selectList){
+                hashMap.put(s,true);
+            }
+            if (selectList.size() != 0)
+                adapter.setAddedCover(true);
+            adapter.setList(selectList);
+            adapter.notifyDataSetChanged();
+        }
     }
     private GridImageAdapter.onAddPicClickListener onAddPicClickListener =
             new GridImageAdapter.onAddPicClickListener() {
@@ -122,19 +154,33 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
                 progressDialog.setCancelable(false);
                 progressDialog.setMessage("正在刻入您的记忆...");
                 progressDialog.show();
-                NoteBean noteBean = new NoteBean(
-                        "",
-                        mTitleText.getText().toString(),
-                        mSummaryText.getText().toString(),
-                        longitude,
-                        latitude,
-                        new Date().getTime(),
-                        emojiId,
-                        true,
-                        selectList,
-                        AVUser.getCurrentUser()
-                        );
-                NoteLab.get(this).addNote(noteBean,handler);
+                if (type == 0){
+                    NoteBean noteBean = new NoteBean(
+                            "",
+                            mTitleText.getText().toString(),
+                            mSummaryText.getText().toString(),
+                            longitude,
+                            latitude,
+                            new Date().getTime(),
+                            emojiId,
+                            true,
+                            selectList,
+                            AVUser.getCurrentUser()
+                    );
+                    NoteLab.get(this).addNote(noteBean,handler);
+                }else {
+                    NoteBean noteBean = NoteLab.get(this).getById(getIntent().getStringExtra(NOTEID));
+                    Log.d("notelab", "onClick: " + noteBean.getId());
+                    noteBean.setTitle(mTitleText.getText().toString());
+                    noteBean.setDetail(mSummaryText.getText().toString());
+                    noteBean.setLongitude(longitude);
+                    noteBean.setLatitude(latitude);
+                    noteBean.setTime(new Date().getTime());
+                    noteBean.setEmojiId(emojiId);
+                    noteBean.setImgUrl(selectList);
+                    NoteLab.get(this).updateEvent(noteBean,handler,hashMap);
+                }
+
                 break;
         }
     }
@@ -313,10 +359,28 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
                 break;
         }
     }
+    //新建
     public static Intent newIntent(Context context, LatLng latLng){
         Intent intent = new Intent(context,EditNoteActivity.class);
         intent.putExtra(LONGITUDE,latLng.longitude);
         intent.putExtra(LATITUDE,latLng.latitude);
+        intent.putExtra(TYPE,0);
+        return intent;
+    }
+    //修改
+    public static Intent newIntent(Context context, NoteBean note){
+        Intent intent = new Intent(context,EditNoteActivity.class);
+        intent.putExtra(NOTEID,note.getId());
+        intent.putExtra(TITLE,note.getTitle());
+        intent.putExtra(SUMMARY,note.getDetail());
+        intent.putExtra(EMOJIID,note.getEmojiId());
+        intent.putExtra(LONGITUDE,note.getLongitude());
+        intent.putExtra(LATITUDE,note.getLatitude());
+        intent.putStringArrayListExtra(IMGURLS,(ArrayList<String>) note.getImgUrl());
+        intent.putExtra(HASPOSITION,note.isHasPosition());
+        intent.putExtra(TIME,note.getTime());
+        intent.putExtra(AVUSER,note.getOwner());
+        intent.putExtra(TYPE,1);
         return intent;
     }
     Handler handler = new Handler(){

@@ -39,6 +39,13 @@ public class NoteListActivity extends AppCompatActivity {
         init();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adapter!=null)
+            adapter.notifyDataSetChanged();
+    }
+
     private void init(){
         Toolbar toolbar = findViewById(R.id.setting_title);
         toolbar.setNavigationIcon(R.drawable.back_white);
