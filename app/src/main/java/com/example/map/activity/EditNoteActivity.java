@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -33,10 +34,12 @@ import android.widget.Toast;
 import com.avos.avoscloud.AVUser;
 import com.baidu.mapapi.model.LatLng;
 import com.example.map.R;
+import com.example.map.SPStr;
 import com.example.map.adapter.GridImageAdapter;
 import com.example.map.bean.NoteBean;
 import com.example.map.bean.NoteLab;
 import com.example.map.utils.BitmapUtil;
+import com.example.map.utils.OnlineUtils;
 import com.example.map.utils.OpenAlbumUtil;
 
 import java.util.ArrayList;
@@ -89,7 +92,7 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
         adapter = new GridImageAdapter(this,onAddPicClickListener);
         adapter.setList(selectList);
         adapter.setHasCover(false);
-        adapter.setSelectMax(6);
+        adapter.setSelectMax(9);
         recyclerView.setAdapter(adapter);
         emojiImg.setBackground(getDrawable(R.drawable.emoji_1));
         emojiImg.setOnClickListener(this);
@@ -325,6 +328,10 @@ public class EditNoteActivity extends AppCompatActivity implements View.OnClickL
             switch (msg.what){
                 case 0:
                     finish();
+                    SharedPreferences.Editor editor = getSharedPreferences(SPStr.USER_INFO,MODE_PRIVATE).edit();
+                    editor.putInt(SPStr.NOTE_COUNT,NoteLab.get(getApplicationContext()).getmNotes().size());
+                    editor.apply();
+                    OnlineUtils.saveData(getApplicationContext());
                     Toast.makeText(EditNoteActivity.this,"刻入成功",Toast.LENGTH_SHORT).show();
                     break;
                 case -999:

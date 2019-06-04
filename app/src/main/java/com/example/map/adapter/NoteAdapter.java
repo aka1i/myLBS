@@ -10,6 +10,7 @@ import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,7 +33,7 @@ import cc.shinichi.sherlockutillibrary.utility.image.ImageUtil;
 public class NoteAdapter extends RecyclerView.Adapter {
     private List<NoteBean> notes;
     private Context context;
-
+    private FollowMeListenr listenr;
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public NoteAdapter(List<NoteBean> notes, Context context) {
         this.notes = notes;
@@ -67,6 +68,7 @@ public class NoteAdapter extends RecyclerView.Adapter {
         private TextView timeText;
         private ImageView moodImg;
         private RecyclerView recyclerView;
+        private Button followMe;
         private NoteBean note;
         public EventHolder(LayoutInflater inflater, ViewGroup parent) {
             super(inflater.inflate(R.layout.item_note,parent,false));
@@ -76,6 +78,7 @@ public class NoteAdapter extends RecyclerView.Adapter {
             timeText = itemView.findViewById(R.id.note_time);
             moodImg = itemView.findViewById(R.id.mood_img);
             recyclerView = itemView.findViewById(R.id.note_pics);
+            followMe = itemView.findViewById(R.id.follow_me);
         }
 
         void bind(final NoteBean note){
@@ -95,11 +98,30 @@ public class NoteAdapter extends RecyclerView.Adapter {
             });
             recyclerView.setLayoutManager(new GridLayoutManager(context,3));
             recyclerView.setAdapter(easyImgAdapter);
+            followMe.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listenr != null){
+                        listenr.onclick(note.getLongitude(),note.getLatitude());
+                    }
+                }
+            });
         }
         @Override
         public void onClick(View v) {
             Intent intent = NoteDetailActivity.newIntent(context,note);
             context.startActivity(intent);
         }
+    }
+    public interface FollowMeListenr{
+        void onclick(double longitude,double latitude);
+    }
+
+    public FollowMeListenr getListenr() {
+        return listenr;
+    }
+
+    public void setListenr(FollowMeListenr listenr) {
+        this.listenr = listenr;
     }
 }

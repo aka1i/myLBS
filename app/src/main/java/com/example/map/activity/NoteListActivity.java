@@ -3,6 +3,7 @@ package com.example.map.activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -16,9 +17,11 @@ import android.widget.Toast;
 
 import com.avos.avoscloud.AVUser;
 import com.example.map.R;
+import com.example.map.SPStr;
 import com.example.map.adapter.NoteAdapter;
 import com.example.map.bean.NoteBean;
 import com.example.map.bean.NoteLab;
+import com.example.map.utils.OnlineUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +60,16 @@ public class NoteListActivity extends AppCompatActivity {
 //        notes.add(new NoteBean("111","222","3333",0.1,0.1,(long)111111111,R.drawable.emoji_1,true,urls, AVUser.getCurrentUser()));
 //        notes.add(new NoteBean("111","222","3333",0.1,0.1,(long)111111111,R.drawable.emoji_1,true,urls, AVUser.getCurrentUser()));
         adapter = new NoteAdapter(notes,this);
+        adapter.setListenr(new NoteAdapter.FollowMeListenr() {
+            @Override
+            public void onclick(double longitude,double latitude) {
+                Intent data = new Intent();
+                data.putExtra("longitude",longitude);
+                data.putExtra("latitude",latitude);
+                setResult(RESULT_OK,data);
+                finish();
+            }
+        });
         mRecyclerView.setAdapter(adapter);
         if (!NoteLab.get(this).isHasSYN()){
             progressDialog = new ProgressDialog(this);
@@ -79,8 +92,12 @@ public class NoteListActivity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what){
                 case 0:
+                    SharedPreferences.Editor editor = getSharedPreferences(SPStr.USER_INFO,MODE_PRIVATE).edit();
+                    editor.putInt(SPStr.NOTE_COUNT,NoteLab.get(getApplicationContext()).getmNotes().size());
+                    editor.apply();
                     adapter.setNotes(NoteLab.get(NoteListActivity.this).getmNotes());
                     adapter.notifyDataSetChanged();
+                    OnlineUtils.saveData(getApplicationContext());
                     break;
                 case -999:
                     Toast.makeText(NoteListActivity.this,"网络连接失败",Toast.LENGTH_SHORT).show();

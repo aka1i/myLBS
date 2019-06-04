@@ -152,6 +152,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private LatLng notePosition;
     private static final int PHOTO_FROM_GALLERY = 1;
     private static final int PHOTO_FROM_CAMERA = 2;
+    public static final int NOTE_FIND_POSITION =3;
     private ProgressDialog progressDialog;
     ImageView headImg;//头像
     String path;//图片路径
@@ -340,7 +341,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     @Override
                     public void onBoomButtonClick(int index) {
                         Intent intent = NoteListActivity.newIntent(MainActivity.this);
-                        startActivity(intent);
+                        startActivityForResult(intent,NOTE_FIND_POSITION);
                     }
                 });
         mBmb.addBuilder(builder7);
@@ -800,7 +801,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         TextView noteCountText = popView.findViewById(R.id.note_count);
         TextView studyCountText = popView.findViewById(R.id.study_count);
         TextView eatCountText = popView.findViewById(R.id.eat_count);
-        Log.d(TAG, "showMePop: " +sp.getString(SPStr.HEAD_IMG,""));
         userNmaeText.setText("用户名：" + sp.getString(SPStr.USER_NAME,""));
         noteCountText.setText("拥有 "+ sp.getInt(SPStr.NOTE_COUNT,0) + " 块记忆");
         studyCountText.setText("累计食堂打卡 "+ sp.getInt(SPStr.STUDY_COUNT,0) + " 次");
@@ -1321,6 +1321,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //                    Log.e("result", "is not ok" + resultCode);
 //                }
 //                break;
+            case NOTE_FIND_POSITION:
+                switch (resultCode){
+                    case RESULT_OK:
+                        if (data != null){
+                            LatLng ll = new LatLng(data.getDoubleExtra("latitude",0),data.getDoubleExtra("longitude",0));
+                            MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(ll);
+                            mBaiduMap.animateMapStatus(update);
+                            update = MapStatusUpdateFactory.zoomTo(mZoomScale);
+                            mBaiduMap.animateMapStatus(update);
+                            mBaiduMap.clear();
+                            BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.start);
+                            OverlayOptions option = new MarkerOptions()
+                                    .position(ll) //必传参数
+                                    .icon(bitmap); //必传参数
+                            mBaiduMap.addOverlay(option);
+                        }
+                        break;
+                }
             default:
                 break;
         }

@@ -67,9 +67,9 @@ public class LoginActivity extends AppCompatActivity {
                                 AVFile headImg = avUser.getAVFile("pic");
                                 if (headImg != null)
                                    editor.putString(SPStr.HEAD_IMG,headImg.getUrl());
-                                editor.putInt(SPStr.NOTE_COUNT,0);
-                                editor.putInt(SPStr.EAT_COUNT,0);
-                                editor.putInt(SPStr.STUDY_COUNT,0);
+                                editor.putInt(SPStr.NOTE_COUNT,avUser.getInt(SPStr.NOTE_COUNT));
+                                editor.putInt(SPStr.EAT_COUNT,avUser.getInt(SPStr.EAT_COUNT));
+                                editor.putInt(SPStr.STUDY_COUNT,avUser.getInt(SPStr.STUDY_COUNT));
                                 editor.apply();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                 Toast.makeText(LoginActivity.this, "脑电波接入成功~~~", Toast.LENGTH_SHORT).show();

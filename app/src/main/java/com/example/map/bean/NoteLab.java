@@ -117,6 +117,7 @@ public class NoteLab {
         noteSave.put("hasPosition", note.isHasPosition());
         noteSave.put("owner",note.getOwner());
         final List<String> uploadUrl = new ArrayList<>();
+        final List<AVFile> files = new ArrayList<>();
         if (note.getImgUrl().size() == 0) {
             noteSave.put("imgUrl", uploadUrl);
 
@@ -136,44 +137,89 @@ public class NoteLab {
             });
             return;
         }
-        for (String url : note.getImgUrl()){
-            try {
-                final AVFile file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
-                file.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(AVException e) {
-                        if (e == null){
-                            uploadUrl.add(file.getUrl());
-                            Log.d(TAG, "addNote: " + file.getUrl());
-                            time++;
-                            Log.d(TAG, "done: " + time);
-                            Log.d(TAG, "done: " + note.getImgUrl().size());
-                            if (time == note.getImgUrl().size()){
-                                noteSave.put("imgUrl",uploadUrl);
-
-                                noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
-                                    @Override
-                                    public void done(AVException e) {
-                                        if (e == null) {
-                                            mNotes.add(0,note);
-                                            handler.sendEmptyMessage(0);
-                                            // 存储成功
-                                            // 保存成功之后，objectId 会自动从服务端加载到本地
-                                        } else {
-                                            handler.sendEmptyMessage(-999);
-                                            // 失败的话，请检查网络环境以及 SDK 配置是否正确
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Toast.makeText(mContext,"找不到图片",Toast.LENGTH_SHORT).show();
+        try {//模拟单一请求
+            for (String s : note.getImgUrl()){
+                files.add(AVFile.withAbsoluteLocalPath("LeanCloud.png", s));
             }
+
+            SaveCallback saveCallback = new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null){
+                        uploadUrl.add(files.get(time).getUrl());
+                        time++;
+                        if (time == note.getImgUrl().size()){
+                            noteSave.put("imgUrl",uploadUrl);
+
+                            noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null) {
+                                        mNotes.add(0,note);
+                                        handler.sendEmptyMessage(0);
+                                        // 存储成功
+                                        // 保存成功之后，objectId 会自动从服务端加载到本地
+                                    } else {
+                                        handler.sendEmptyMessage(-999);
+                                        // 失败的话，请检查网络环境以及 SDK 配置是否正确
+                                    }
+                                }
+                            });
+                        }else {
+                            files.get(time).saveInBackground(this);
+                        }
+                    }else {
+                        Log.d(TAG, "done: " + e.getMessage());
+                        handler.sendEmptyMessage(-999);
+                        // 失败的话，请检查网络环境以及 SDK 配置是否正确
+                    }
+                }
+            };
+            files.get(0).saveInBackground(saveCallback);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(mContext,"找不到图片",Toast.LENGTH_SHORT).show();
         }
+
+//        for (String url : note.getImgUrl()){
+//            try {
+//                final AVFile file = AVFile.withAbsoluteLocalPath("LeanCloud.png", url);
+//                file.saveInBackground(new SaveCallback() {
+//                    @Override
+//                    public void done(AVException e) {
+//                        if (e == null){
+//                            uploadUrl.add(file.getUrl());
+//                            time++;
+//                            if (time == note.getImgUrl().size()){
+//                                noteSave.put("imgUrl",uploadUrl);
+//
+//                                noteSave.saveInBackground(new SaveCallback() {// 保存到服务端
+//                                    @Override
+//                                    public void done(AVException e) {
+//                                        if (e == null) {
+//                                            mNotes.add(0,note);
+//                                            handler.sendEmptyMessage(0);
+//                                            // 存储成功
+//                                            // 保存成功之后，objectId 会自动从服务端加载到本地
+//                                        } else {
+//                                            handler.sendEmptyMessage(-999);
+//                                            // 失败的话，请检查网络环境以及 SDK 配置是否正确
+//                                        }
+//                                    }
+//                                });
+//                            }
+//                        }else {
+//                            Log.d(TAG, "done: " + e.getMessage());
+//                            handler.sendEmptyMessage(-999);
+//                            // 失败的话，请检查网络环境以及 SDK 配置是否正确
+//                        }
+//                    }
+//                });
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//                Toast.makeText(mContext,"找不到图片",Toast.LENGTH_SHORT).show();
+//            }
+//        }
     }
     public void deleteEvent(final NoteBean note, final Handler handler){
         final ProgressDialog progressDialog = new ProgressDialog(mContext);
