@@ -158,7 +158,7 @@
 
                             <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="60dp">
+                                android:layout_height="110dp">
                                    <android.support.v7.widget.RecyclerView
                                        android:id="@+id/pop_rl_2"
                                        android:layout_width="match_parent"
@@ -189,7 +189,7 @@
 
                             <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="60dp">
+                                android:layout_height="160dp">
                                    <android.support.v7.widget.RecyclerView
                                        android:id="@+id/pop_rl_3"
                                        android:layout_width="match_parent"

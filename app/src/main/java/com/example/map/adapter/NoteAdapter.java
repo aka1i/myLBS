@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,19 +16,13 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.map.R;
-import com.example.map.SPStr;
 import com.example.map.activity.EditNoteActivity;
-import com.example.map.activity.NoteDetailActivity;
 import com.example.map.bean.NoteBean;
 import com.example.map.utils.ImgDetailUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import cc.shinichi.sherlockutillibrary.utility.image.ImageUtil;
 
 public class NoteAdapter extends RecyclerView.Adapter {
     private List<NoteBean> notes;
@@ -90,8 +83,8 @@ public class NoteAdapter extends RecyclerView.Adapter {
             Uri uri = Uri.parse("android.resource://" + context.getPackageName() + "/" + note.getEmojiId());
             RequestOptions options = new RequestOptions();
             Glide.with(context).applyDefaultRequestOptions(options).load(uri).into(moodImg);
-            EasyImgAdapter easyImgAdapter = new EasyImgAdapter(note.getImgUrl(),context);
-            easyImgAdapter.setListener(new EasyImgAdapter.ClickListener() {
+            CardImgAdapter easyImgAdapter = new CardImgAdapter(note.getImgUrl(),context);
+            easyImgAdapter.setListener(new CardImgAdapter.ClickListener() {
                 @Override
                 public void onclick(int position) {
                     ImgDetailUtil.startImgDetail(context,note.getImgUrl(),position);

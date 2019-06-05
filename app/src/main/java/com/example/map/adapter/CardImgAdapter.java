@@ -9,22 +9,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.MultiTransformation;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.map.R;
-import com.example.map.utils.ImgDetailUtil;
-import com.example.map.utils.SizeUtils;
 
 import java.util.List;
 
-import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
-
-public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHolder>{
+public class CardImgAdapter extends RecyclerView.Adapter<CardImgAdapter.ViewHolder>{
     private List<String> strings;
     private Context context;
-    public EasyImgAdapter(Context context,List<String> strings){
+    private ClickListener listener;
+    public CardImgAdapter(List<String> strings, Context context){
         this.strings=strings;
         this.context=context;
     }
@@ -34,7 +28,7 @@ public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHold
 
         private ViewHolder(View view){
             super(view);
-            this.view = view.findViewById(R.id.linear_body_img);
+            this.view = view.findViewById(R.id.activity_body_img);
         }
     }
 
@@ -44,21 +38,17 @@ public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHold
         RequestOptions options=new RequestOptions()
                 .error(R.drawable.default_head)
                 .placeholder(R.color.grey_1)
-                .transform(new MultiTransformation(
-                        new CenterCrop(),
-                        new RoundedCornersTransformation(SizeUtils.dip2px(context,15), 0, RoundedCornersTransformation.CornerType.ALL)));
-
-
+                .fitCenter();
         Glide.with(context).load(s)
                 .apply(options)
                 .into(holder.view);
-
-        holder.view.setOnClickListener(new View.OnClickListener() {
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ImgDetailUtil.startImgDetail(context,strings,position);
+                listener.onclick(position);
             }
         });
+
     }
 
     @Override
@@ -68,11 +58,18 @@ public class EasyImgAdapter extends RecyclerView.Adapter<EasyImgAdapter.ViewHold
 
     @NonNull
     @Override
-    public EasyImgAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
+    public CardImgAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
         View view= LayoutInflater.from(context)
-                .inflate(R.layout.item_linear_imgview,parent,false);
-        return new EasyImgAdapter.ViewHolder(view);
+                .inflate(R.layout.item_notelist_img,parent,false);
+        return new CardImgAdapter.ViewHolder(view);
     }
 
+    public void setListener(ClickListener listener) {
+        this.listener = listener;
+    }
+
+    public interface ClickListener{
+        void onclick(int position);
+    }
 
 }

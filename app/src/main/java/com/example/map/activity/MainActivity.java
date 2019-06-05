@@ -320,10 +320,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 });
         mBmb.addBuilder(builder3);
         TextOutsideCircleButton.Builder builder4 = new TextOutsideCircleButton.Builder()
-                .normalImageRes(R.drawable.fad_indoor)
-                .normalText("打开室内图") .listener(new OnBMClickListener() {
+                .normalImageRes(R.drawable.fad_views)
+                .normalText("查看实景") .listener(new OnBMClickListener() {
                     @Override
                     public void onBoomButtonClick(int index) {
+                        if (indoor){
+                            mapClear();
+                            return;
+                        }
                         drawIndoorMark();
                     }
                 });
@@ -568,19 +572,26 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //        BitmapDescriptor bitmap = BitmapDescriptorFactory.fromBitmap(
 //                BitmapUtil.scaleBitmap(
 //                        BitmapFactory.decodeResource(getResources(), R.mipmap.jiaoxuelou),200,200));
-
-        BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.mipmap.jiaoxuelou);
+        BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.build);
         for (LatLng p : PositionData.indoors.values()){
             LatLng point = p;
-            OverlayOptions option = new MarkerOptions()
+            MarkerOptions option = new MarkerOptions()
                     .position(point) //必传参数
                     .icon(bitmap); //必传参数
  //           MarkerOptions ooD = new MarkerOptions().position(p).icon(bitmap);
             mBaiduMap.addOverlay(option);
         }
+        BitmapDescriptor bitmap2 = BitmapDescriptorFactory.fromResource(R.drawable.outdoor);
 
-
-
+        for (LatLng p : PositionData.outdoors.values()){
+            LatLng point = p;
+            MarkerOptions option = new MarkerOptions()
+                    .position(point) //必传参数
+                    .icon(bitmap2); //必传参数
+            //           MarkerOptions ooD = new MarkerOptions().position(p).icon(bitmap);
+            mBaiduMap.addOverlay(option);
+        }
+        indoor = true;
     }
 
     private void expand() {
@@ -1101,7 +1112,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 OnlineUtils.saveData(MainActivity.this);
             } else {
                 setTextOption(LocationPoint, "您不在图书馆范围之内", "#FF6C6C");
-                setMarkerOptions(mDestinationPoint, R.mipmap.library_icon);
+                setMarkerOptions(mDestinationPoint, R.drawable.study);
                 //commit_bt.setBackgroundDrawable(getResources().getDrawable(R.mipmap.restaurant_btbg_gray));
             //    mBaiduMap.setMyLocationEnabled(true);
             }
@@ -1175,7 +1186,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 OnlineUtils.saveData(MainActivity.this);
             } else {
                 setTextOption(LocationPoint, "您不在食堂范围之内", "#FF6C6C");
-                setMarkerOptions(mDestinationPoint, R.mipmap.restaurant_icon);
+                setMarkerOptions(mDestinationPoint, R.drawable.rice);
             }
 
             // mDistance_tv.setText("距离目的地：" + mDistance + "米");
@@ -1275,6 +1286,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
             else if (MyLatLngUtil.equal(PositionData.indoors.get("东3"),position)){
                 startActivity(IndoorActivity.newIntent(MainActivity.this,"东3"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("图书馆"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"图书馆"));
                 return true;
             }
             return false;
