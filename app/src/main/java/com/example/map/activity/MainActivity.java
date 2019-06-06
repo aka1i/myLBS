@@ -789,8 +789,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     luxiandaohang(start,end);
                 else
                     Toast.makeText(MainActivity.this,"只能从\"我的位置\"开始导航哦",Toast.LENGTH_SHORT).show();
-
-                canDaohang = false;
             }
         });
        timeText.setText(duration / 60 + "");
