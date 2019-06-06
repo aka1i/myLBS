@@ -1290,7 +1290,69 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }else if (MyLatLngUtil.equal(PositionData.outdoors.get("图书馆"),position)){
                 startActivity(IndoorActivity.newIntent(MainActivity.this,"图书馆"));
                 return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("福友阁"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"福友阁"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("游泳池"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"游泳池"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("山北行政楼"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"山北行政楼"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("山南行政楼"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"山南行政楼"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("南门"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"南门"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("北门"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"北门"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("东门"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"东门"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("西门"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"西门"));
+                return true;
             }
+            else if (MyLatLngUtil.equal(PositionData.outdoors.get("素拓"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"素拓"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("阳光园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"阳光园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("晋江园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"晋江园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("火烈鸟"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"火烈鸟"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("生态文化园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"生态文化园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("浦城丹桂园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"浦城丹桂园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("火山地质园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"火山地质园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("文体综合馆"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"文体综合馆"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("紫荆园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"紫荆园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("玫瑰园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"玫瑰园"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("京元"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"京元"));
+                return true;
+            }else if (MyLatLngUtil.equal(PositionData.outdoors.get("丁香园"),position)){
+                startActivity(IndoorActivity.newIntent(MainActivity.this,"丁香园"));
+                return true;
+            }
+
             return false;
         }
     };

@@ -34,6 +34,7 @@ public class PositionData {
         scenicSpot.put("福友阁",new LatLng(26.059701,119.206877));
         scenicSpot.put("阳光园",new LatLng(26.065868,119.205262));
         scenicSpot.put("晋江园",new LatLng(26.064207,119.203145));
+        scenicSpot.put("火烈鸟",new LatLng(26.063635,119.204093));
         scenicSpot.put("生态文化园",new LatLng(26.06624,119.206416));
         scenicSpot.put("浦城丹桂园",new LatLng(26.059712,119.20774));
         scenicSpot.put("火山地质园",new LatLng(26.058313,119.206653));
@@ -42,9 +43,10 @@ public class PositionData {
         scenicSpot.put("北门",new LatLng(26.070134,119.203473));
         scenicSpot.put("南门",new LatLng(26.055872,119.205419));
 
+        others.put("福大地铁站",new LatLng(26.064652,119.209948));
         others.put("校医院",new LatLng(26.060325,119.200791));
         others.put("风雨操场",new LatLng(26.057763,119.201115));
-        others.put("火山地质园",new LatLng(26.058073,119.204151));
+        others.put("游泳池",new LatLng(26.058073,119.204151));
         others.put("第一田径场",new LatLng(26.06237,119.200871));
         others.put("第二田径场",new LatLng(26.056879,119.202193));
         others.put("素拓",new LatLng(26.062536,119.202416));
@@ -65,5 +67,24 @@ public class PositionData {
 
         outdoors.put("图书馆",new LatLng(26.06479,119.204322));
         outdoors.put("福友阁",new LatLng(26.059701,119.206877));
+        outdoors.put("游泳池",new LatLng(26.058073,119.204151));
+        outdoors.put("山北行政楼",new LatLng(26.063713,119.207176));
+        outdoors.put("山南行政楼",new LatLng(26.059943,119.204567));
+        outdoors.put("南门",new LatLng(26.055872,119.205419));
+        outdoors.put("东门",new LatLng(26.06641,119.208756));
+        outdoors.put("西门",new LatLng(26.057973,119.200208));
+        outdoors.put("北门",new LatLng(26.070134,119.203473));
+        outdoors.put("素拓",new LatLng(26.062536,119.202416));
+        outdoors.put("阳光园",new LatLng(26.065868,119.205262));
+        outdoors.put("晋江园",new LatLng(26.064207,119.203145));
+        outdoors.put("火烈鸟",new LatLng(26.063635,119.204093));
+        outdoors.put("生态文化园",new LatLng(26.06624,119.206416));
+        outdoors.put("浦城丹桂园",new LatLng(26.059712,119.20774));
+        outdoors.put("火山地质园",new LatLng(26.058313,119.206653));
+        outdoors.put("文体综合馆",new LatLng(26.057383,119.203504));
+        outdoors.put("紫荆园",new LatLng(26.058864,119.198528));
+        outdoors.put("玫瑰园",new LatLng(26.058803,119.199269));
+        outdoors.put("京元",new LatLng(26.062943,119.199216));
+        outdoors.put("丁香园",new LatLng(26.062804,119.198644));
     }
 }
