@@ -95,7 +95,6 @@ import com.example.map.bean.NoteLab;
 import com.example.map.bean.PositionData;
 import com.example.map.overlayutil.OverlayManager;
 import com.example.map.overlayutil.WalkingRouteOverlay;
-import com.example.map.utils.BitmapUtil;
 import com.example.map.utils.MyLatLngUtil;
 import com.example.map.utils.MyMapUtil;
 import com.example.map.utils.OnlineUtils;
